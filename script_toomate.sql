@@ -1,11 +1,21 @@
-CREATE DATABASE toomate;
+
+drop user if exists 'toomate_user'@'%';
+create user 'toomate_user'@'%' identified by 'toomate_password';
+grant all on toomate.* to 'toomate_user'@'%';
+
+flush privileges;
+
+drop database if exists toomate;
+create database if not exists toomate;
 USE toomate;
+
+/*
+*/
 CREATE TABLE usuario (
     idUsuario INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(45),
     senha CHAR(64),
-    administrador TINYINT,
-    apelido VARCHAR(45)
+    administrador TINYINT
 );
 
 CREATE TABLE categoria (
@@ -30,9 +40,9 @@ CREATE TABLE rotina (
 );
 
 CREATE TABLE rotinaInsumo (
+    id INT PRIMARY KEY AUTO_INCREMENT,
     idRotina INT,
     idInsumo INT,
-    PRIMARY KEY (idRotina, idInsumo),
     CONSTRAINT fk_rotinaInsumo_rotina FOREIGN KEY (idRotina) REFERENCES rotina(idRotina),
     CONSTRAINT fk_rotinaInsumo_insumo FOREIGN KEY (idInsumo) REFERENCES insumo(idInsumo)
 );
@@ -59,9 +69,9 @@ CREATE TABLE lote (
     precoUnit DECIMAL(5,2),
     quantidadeMedida DOUBLE,
     dateEntrada DATE,
-    fkIngrediente INT,
+    fkMarca INT,
     fkUsuario INT,
-    CONSTRAINT fk_lote_insumo FOREIGN KEY (fkIngrediente) REFERENCES insumo(idInsumo),
+    CONSTRAINT fk_lote_marca FOREIGN KEY (fkMarca) REFERENCES marca(idMarca),
     CONSTRAINT fk_lote_usuario FOREIGN KEY (fkUsuario) REFERENCES usuario(idUsuario)
 );
 
@@ -74,12 +84,12 @@ CREATE TABLE arquivo (
     dtAlteracao DATETIME
 );
 
-CREATE TABLE arquivo_relacionamento (
+CREATE TABLE arquivoRelacionamento (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    fk_arquivo INT,
-    tipo_entidade VARCHAR(45),
-    id_entidade INT,
-	CONSTRAINT fk_arq_rel_arquivo FOREIGN KEY (fk_arquivo) REFERENCES arquivo(idArquivo)
+    fkArquivo INT,
+    tipoEntidade VARCHAR(45),
+    idEntidade INT,
+	CONSTRAINT fk_arq_rel_arquivo FOREIGN KEY (fkArquivo) REFERENCES arquivo(idArquivo)
 );
 
 CREATE TABLE cliente (
