@@ -296,5 +296,5 @@ SELECT
 FROM lote l
 WHERE l.dataValidade < CURDATE();
 
-INSERT INTO usuario VALUES
+INSERT INTO usuario(nome, senha, administrador) VALUES
 ("admin","123",true);
