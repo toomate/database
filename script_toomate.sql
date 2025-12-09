@@ -11,7 +11,7 @@ USE toomate;
 
 /*
 */
-CREATE TABLE usuario (
+CREATE TABLE Usuario (
     idUsuario INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(45),
     senha CHAR(64),
@@ -72,7 +72,7 @@ CREATE TABLE lote (
     fkMarca INT,
     fkUsuario INT,
     CONSTRAINT fk_lote_marca FOREIGN KEY (fkMarca) REFERENCES marca(idMarca),
-    CONSTRAINT fk_lote_usuario FOREIGN KEY (fkUsuario) REFERENCES usuario(idUsuario)
+    CONSTRAINT fk_lote_usuario FOREIGN KEY (fkUsuario) REFERENCES Usuario(idUsuario)
 );
 
 CREATE TABLE arquivo (
@@ -295,6 +295,3 @@ SELECT
     COALESCE(SUM(l.precoUnit * l.quantidadeMedida), 0) AS ValorTotalPerda
 FROM lote l
 WHERE l.dataValidade < CURDATE();
-
-INSERT INTO usuario(nome, senha, administrador) VALUES
-("admin","123",true);
