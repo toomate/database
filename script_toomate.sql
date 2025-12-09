@@ -295,3 +295,6 @@ SELECT
     COALESCE(SUM(l.precoUnit * l.quantidadeMedida), 0) AS ValorTotalPerda
 FROM lote l
 WHERE l.dataValidade < CURDATE();
+
+INSERT INTO usuario VALUES
+("admin","123",true);
