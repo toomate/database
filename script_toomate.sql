@@ -1,13 +1,12 @@
+drop database if exists toomate;
+create database if not exists toomate;
+USE toomate;
 
 drop user if exists 'toomate_user'@'%';
 create user 'toomate_user'@'%' identified by 'toomate_password';
 grant all on toomate.* to 'toomate_user'@'%';
 
 flush privileges;
-
-drop database if exists toomate;
-create database if not exists toomate;
-USE toomate;
 
 /*
 */
