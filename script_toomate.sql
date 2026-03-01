@@ -13,6 +13,7 @@ flush privileges;
 CREATE TABLE Usuario (
     idUsuario INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(45),
+    apelido VARCHAR(45),
     senha CHAR(64),
     administrador TINYINT
 );
