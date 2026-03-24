@@ -11,9 +11,9 @@ USE toomate;
 -- Senha: hash SHA-256 de 'senha123'
 -- ------------------------------------------------------------
 INSERT INTO Usuario (nome, apelido, senha, administrador) VALUES
-    ('Carlos Eduardo Silva',  'carlos',  '64e604787cbf194841e7b68d7cd28786f6c9a0a3ab9f8b0a0e87cb4387ab0d7', 1),
-    ('Ana Paula Souza',       'ana',     '64e604787cbf194841e7b68d7cd28786f6c9a0a3ab9f8b0a0e87cb4387ab0d7', 0),
-    ('Roberto Mendes',        'roberto', '64e604787cbf194841e7b68d7cd28786f6c9a0a3ab9f8b0a0e87cb4387ab0d7', 0);
+    ('Carlos Eduardo Silva',  'carlos',  'senha123', 1),
+    ('Ana Paula Souza',       'ana',     'senha123', 0),
+    ('Roberto Mendes',        'roberto', 'senha123', 0);
 
 
 -- ------------------------------------------------------------
