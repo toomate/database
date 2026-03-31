@@ -35,14 +35,14 @@ CREATE TABLE insumo (
 
 CREATE TABLE rotina (
     idRotina INT PRIMARY KEY AUTO_INCREMENT,
-    titulo VARCHAR(45),
-    quantidadeMedida INT
+    titulo VARCHAR(45)
 );
 
 CREATE TABLE rotinaInsumo (
     id INT PRIMARY KEY AUTO_INCREMENT,
     idRotina INT,
     idInsumo INT,
+    quantidadeMedida INT,
     CONSTRAINT fk_rotinaInsumo_rotina FOREIGN KEY (idRotina) REFERENCES rotina(idRotina),
     CONSTRAINT fk_rotinaInsumo_insumo FOREIGN KEY (idInsumo) REFERENCES insumo(idInsumo)
 );
