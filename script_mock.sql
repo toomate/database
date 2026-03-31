@@ -1,4 +1,4 @@
-﻿USE toomate;
+use toomate;
 INSERT INTO Usuario (nome, apelido, senha, administrador) VALUES
     ('Carlos Eduardo Silva',  'carlos',  'senha123', 1),
     ('Ana Paula Souza',       'ana',     'senha123', 0),
