@@ -110,8 +110,7 @@ INSERT INTO lote (fkMarca, fkUsuario, precoUnit, quantidadeMedida, dateEntrada, 
     (7, 2,  ROUND(2.50 + RAND() * 1.20, 2), ROUND(8 + RAND() * 6, 1), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 24 MONTH)),
     (8, 2,  ROUND(7.50 + RAND() * 3.00, 2), ROUND(10 + RAND() * 8, 1), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 18 MONTH)),
     (9, 1, ROUND(8.50 + RAND() * 3.00, 2), ROUND(30 + RAND() * 20, 1), CURDATE(), DATE_ADD(CURDATE(), INTERVAL  6 MONTH)),
-    (10, 3,  ROUND(0.90 + RAND() * 0.80, 2), ROUND(50 + RAND() * 30, 1), CURDATE(), DATE_ADD(CURDATE(), INTERVAL  2 YEAR));
-INSERT INTO lote (fkMarca, fkUsuario, precoUnit, quantidadeMedida, dateEntrada, dataValidade) VALUES
+    (10, 3,  ROUND(0.90 + RAND() * 0.80, 2), ROUND(50 + RAND() * 30, 1), CURDATE(), DATE_ADD(CURDATE(), INTERVAL  2 YEAR)),
     (11, 1, ROUND(4.00 + RAND() * 2.00, 2),  ROUND(10 + RAND() * 15, 1), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 20 DAY)),
     (12, 2, ROUND(18.00 + RAND() * 6.00, 2), ROUND(6 + RAND() * 8, 1), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 40 DAY)),
     (13, 3, ROUND(6.00 + RAND() * 2.00, 2),  ROUND(12 + RAND() * 18, 1), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 25 DAY)),
