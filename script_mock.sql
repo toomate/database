@@ -21,28 +21,28 @@ INSERT INTO Usuario (nome, apelido, senha, administrador) VALUES
     ('Ana Paula Souza',       'ana',     'senha123', 0),
     ('Roberto Mendes',        'roberto', 'senha123', 0);
 INSERT INTO categoria (nome, rotatividade) VALUES
-    ('LaticÃ­nios',             1),
+    ('Laticínios',             1),
     ('Carnes e Aves',          1),
-    ('GrÃ£os e Cereais',        0),
+    ('Grãos e Cereais',        0),
     ('Temperos e Condimentos', 0),
     ('Bebidas',                0);
 INSERT INTO fornecedor (razaoSocial, telefone, linkWhatsapp) VALUES
-    ('LaticÃ­nios do Vale Ltda',        CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
-    ('FrigorÃ­fico Central S.A.',       CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
-    ('Distribuidora GrÃ£os Brasil Ltda',CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
+    ('Laticínios do Vale Ltda',        CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
+    ('Frigorífico Central S.A.',       CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
+    ('Distribuidora Grãos Brasil Ltda',CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
     ('Temperos & Cia Ltda',            CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
     ('Distribuidora de Bebidas S.A.',  CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0')));
 INSERT INTO insumo (fkCategoria, nome, qtdMinima, unidadeMedida) VALUES
     (1, 'Leite Integral',     10, 'L'),
     (1, 'Queijo Mussarela',    5, 'kg'),
     (2, 'Frango Inteiro',      8, 'kg'),
-    (2, 'Carne Bovina MoÃ­da', 10, 'kg'),
+    (2, 'Carne Bovina Moída', 10, 'kg'),
     (3, 'Arroz Branco',       20, 'kg'),
-    (3, 'FeijÃ£o Carioca',     15, 'kg'),
+    (3, 'Feijão Carioca',     15, 'kg'),
     (4, 'Sal Refinado',        5, 'kg'),
-    (4, 'Ã“leo de Soja',        6, 'L'),
+    (4, 'Óleo de Soja',        6, 'L'),
     (5, 'Refrigerante 2L',    24, 'un'),
-    (5, 'Ãgua Mineral 500ml', 50, 'un'),
+    (5, 'Água Mineral 500ml', 50, 'un'),
     (1, 'Creme de Leite',       8, 'L'),
     (1, 'Manteiga',             6, 'kg'),
     (1, 'Iogurte Natural',     12, 'L'),
@@ -74,16 +74,16 @@ INSERT INTO insumo (fkCategoria, nome, qtdMinima, unidadeMedida) VALUES
     (5, 'Agua com Gas 500ml',  40, 'un'),
     (5, 'Isotonico 500ml',     24, 'un');
 INSERT INTO marca (fkInsumo, fkFornecedor, nomeMarca) VALUES
-    (1,  1, 'Italac'),         -- Leite Integral       / LaticÃ­nios do Vale
-    (2,  1, 'Polenghi'),       -- Queijo Mussarela     / LaticÃ­nios do Vale
-    (3,  2, 'Seara'),          -- Frango Inteiro       / FrigorÃ­fico Central
-    (4,  2, 'Friboi'),         -- Carne Bovina MoÃ­da   / FrigorÃ­fico Central
-    (5,  3, 'Tio JoÃ£o'),       -- Arroz Branco         / Distrib. GrÃ£os Brasil
-    (6,  3, 'Camil'),          -- FeijÃ£o Carioca       / Distrib. GrÃ£os Brasil
+    (1,  1, 'Italac'),         -- Leite Integral       / Laticínios do Vale
+    (2,  1, 'Polenghi'),       -- Queijo Mussarela     / Laticínios do Vale
+    (3,  2, 'Seara'),          -- Frango Inteiro       / Frigorífico Central
+    (4,  2, 'Friboi'),         -- Carne Bovina Moída   / Frigorífico Central
+    (5,  3, 'Tio João'),       -- Arroz Branco         / Distrib. Grãos Brasil
+    (6,  3, 'Camil'),          -- Feijão Carioca       / Distrib. Grãos Brasil
     (7,  4, 'Cisne'),          -- Sal Refinado         / Temperos & Cia
-    (8,  4, 'Liza'),           -- Ã“leo de Soja         / Temperos & Cia
+    (8,  4, 'Liza'),           -- Óleo de Soja         / Temperos & Cia
     (9,  5, 'Coca-Cola'),      -- Refrigerante 2L      / Distrib. de Bebidas
-    (10, 5, 'Crystal');        -- Ãgua Mineral 500ml   / Distrib. de Bebidas
+    (10, 5, 'Crystal');        -- Água Mineral 500ml   / Distrib. de Bebidas
 INSERT INTO marca (fkInsumo, fkFornecedor, nomeMarca) VALUES
     (11, 1, 'Piracanjuba'),
     (12, 1, 'Aviacao'),
@@ -187,7 +187,7 @@ INSERT INTO boleto (descricao, categoria, pago, dataVencimento, dataPagamento, v
     ('Boleto energia - Dezembro',        'Contas Consumo',         1, DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), INTERVAL 343 DAY), DATE_SUB(DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), INTERVAL 343 DAY), INTERVAL FLOOR(1 + RAND() * 4) DAY), ROUND(510 + RAND() * 150, 2), FLOOR(RAND() * 5) + 1),
     ('Boleto fornecedor - Dezembro',     'Boletos Fornecedores',   0, DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), INTERVAL 353 DAY), NULL,                                                                      ROUND(880 + RAND() * 200, 2), FLOOR(RAND() * 5) + 1);
 INSERT INTO cliente (nome, telefone, cep, logradouro, bairro) VALUES
-    (CASE FLOOR(RAND() * 5) WHEN 0 THEN 'Joao Pedro Lima' WHEN 1 THEN 'JoÃ£o Silva Santos' WHEN 2 THEN 'JoÃ£o Oliveira' WHEN 3 THEN 'JoÃ£o da Costa' ELSE 'JoÃ£o Ferreira' END, 
+    (CASE FLOOR(RAND() * 5) WHEN 0 THEN 'Joao Pedro Lima' WHEN 1 THEN 'João Silva Santos' WHEN 2 THEN 'João Oliveira' WHEN 3 THEN 'João da Costa' ELSE 'João Ferreira' END, 
      CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), 
      CONCAT(LPAD(FLOOR(RAND() * 99999), 5, '0'), '-', LPAD(FLOOR(RAND() * 999), 3, '0')), 'Rua das Palmeiras, 120', 'Centro'),
     (CASE FLOOR(RAND() * 5) WHEN 0 THEN 'Mariana Costa Alves' WHEN 1 THEN 'Mariana Silva' WHEN 2 THEN 'Mariana Oliveira' WHEN 3 THEN 'Mariana Santos' ELSE 'Mariana Pereira' END, 
@@ -213,4 +213,3 @@ INSERT INTO divida (valor, dataCompra, dataPagamento, pedido, pago, fkCliente) V
     (ROUND(70 + RAND() * 120, 2), DATE_SUB(CURDATE(), INTERVAL FLOOR(3 + RAND() * 15) DAY), NULL, CONCAT('PF-', LPAD(FLOOR(RAND() * 9999), 4, '0')), 0, 4),
     (ROUND(130 + RAND() * 180, 2), DATE_SUB(CURDATE(), INTERVAL FLOOR(40 + RAND() * 80) DAY), NULL, CONCAT('PF-', LPAD(FLOOR(RAND() * 9999), 4, '0')), 0, 5),
     (ROUND(40 + RAND() * 100, 2),  DATE_SUB(CURDATE(), INTERVAL FLOOR(5 + RAND() * 20) DAY), DATE_SUB(CURDATE(), INTERVAL FLOOR(2 + RAND() * 10) DAY), CONCAT('PF-', LPAD(FLOOR(RAND() * 9999), 4, '0')), 1, 5);
-
