@@ -27,11 +27,11 @@ INSERT INTO categoria (nome, rotatividade) VALUES
     ('Temperos e Condimentos', 0),
     ('Bebidas',                0);
 INSERT INTO fornecedor (razaoSocial, telefone, linkWhatsapp) VALUES
-    ('Laticínios do Vale Ltda',        CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
-    ('Frigorífico Central S.A.',       CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
-    ('Distribuidora Grãos Brasil Ltda',CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
-    ('Temperos & Cia Ltda',            CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0'))),
-    ('Distribuidora de Bebidas S.A.',  CONCAT('(11) 9', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0')), CONCAT('https://wa.me/5511', LPAD(FLOOR(8000 + RAND() * 2000), 4, '0'), LPAD(FLOOR(RAND() * 10000), 4, '0')));
+    ('Laticínios do Vale Ltda',        '(11) 5897-2493', 'https://wa.me/551158972493'),
+    ('Frigorífico Central S.A.',       '(11) 5897-2493', 'https://wa.me/551158972493'),
+    ('Distribuidora Grãos Brasil Ltda','(11) 5897-2493', 'https://wa.me/551158972493'),
+    ('Temperos & Cia Ltda',            '(11) 5897-2493', 'https://wa.me/551158972493'),
+    ('Distribuidora de Bebidas S.A.',  '(11) 5897-2493', 'https://wa.me/551158972493');
 INSERT INTO insumo (fkCategoria, nome, qtdMinima, unidadeMedida) VALUES
     (1, 'Leite Integral',     10, 'L'),
     (1, 'Queijo Mussarela',    5, 'kg'),
