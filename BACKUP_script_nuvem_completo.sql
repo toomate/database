@@ -68,24 +68,13 @@ CREATE TABLE lote (
     precoUnit DECIMAL(5,2),
     unidadeMedida VARCHAR(20),
     quantidadeMedida DOUBLE,
-    quantidadeOriginal INT,
-    quantidadeAtual INT,
-    dataEntrada DATETIME,
+    quantidadeTotal INT,
+    dataEntrada DATE,
     fkMarca INT,
     fkUsuario INT,
     CONSTRAINT fk_lote_marca FOREIGN KEY (fkMarca) REFERENCES marca(idMarca),
     CONSTRAINT fk_lote_usuario FOREIGN KEY (fkUsuario) REFERENCES Usuario(idUsuario)
 );
-
-
-CREATE TABLE historicoLote (
-    idHistorico INT PRIMARY KEY AUTO_INCREMENT,
-    fkLote INT,
-    quantidadeRetirada INT,
-    dataHoraAlteracao DATETIME,
-    CONSTRAINT fk_historicoLote_lote FOREIGN KEY (fkLote) REFERENCES lote(idLote)
-);
-
 
 CREATE TABLE arquivo (
     idArquivo INT PRIMARY KEY AUTO_INCREMENT,
@@ -115,7 +104,7 @@ CREATE TABLE cliente (
 
 CREATE TABLE divida (
     idDivida INT PRIMARY KEY AUTO_INCREMENT,
-    valor DECIMAL(10,2),
+    valor DECIMAL(6,2),
     dataCompra DATETIME,
     dataPagamento DATETIME,
     pedido VARCHAR(200),
@@ -131,7 +120,7 @@ CREATE TABLE boleto (
     pago TINYINT,
     dataVencimento DATETIME,
     dataPagamento DATETIME,
-    valor DECIMAL(10,2),
+    valor DECIMAL(6,2),
     fkFornecedor INT,
     CONSTRAINT fk_boleto_fornecedor FOREIGN KEY (fkFornecedor) REFERENCES fornecedor(idFornecedor)
 );
@@ -143,7 +132,7 @@ CREATE VIEW vw_kpi_validade_proxima AS
 SELECT 
     i.nome AS Insumo, 
     l.dataValidade, 
-    l.quantidadeAtual AS QtdAtual,
+    l.quantidadeTotal AS QtdAtual,
     DATEDIFF(l.dataValidade, CURDATE()) AS DiasParaVencer
 FROM lote l
 JOIN marca m ON l.fkMarca = m.idMarca
@@ -155,7 +144,7 @@ WHERE l.dataValidade <= DATE_ADD(CURDATE(), INTERVAL 7 DAY);
 CREATE VIEW vw_kpi_estoque_baixo AS
 SELECT 
     i.nome AS Insumo,
-    SUM(l.quantidadeAtual) AS EstoqueTotal,
+    SUM(l.quantidadeTotal) AS EstoqueTotal,
     i.qtdMinima
 FROM insumo i
 LEFT JOIN marca m ON i.idInsumo = m.fkInsumo
@@ -175,10 +164,10 @@ WHERE pago = 0 AND dataVencimento < CURDATE();
 CREATE VIEW vw_grafico_estoque_vs_minimo AS
 SELECT 
     i.nome AS Insumo,
-    COALESCE(SUM(l.quantidadeAtual), 0) AS EstoqueAtual,
+    COALESCE(SUM(l.quantidadeTotal), 0) AS EstoqueAtual,
     i.qtdMinima AS EstoqueMinimo,
     CASE 
-        WHEN COALESCE(SUM(l.quantidadeAtual), 0) < i.qtdMinima THEN 'Repor Urgente'
+        WHEN COALESCE(SUM(l.quantidadeTotal), 0) < i.qtdMinima THEN 'Repor Urgente'
         ELSE 'OK' 
     END AS Status
 FROM insumo i
@@ -265,9 +254,9 @@ LIMIT 1;
 CREATE VIEW vw_predicao_falta_estoque AS
 SELECT 
     i.nome AS Insumo,
-    SUM(l.quantidadeAtual) AS EstoqueAtual,
+    SUM(l.quantidadeTotal) AS EstoqueAtual,
     i.qtdMinima,
-    (SUM(l.quantidadeAtual) - i.qtdMinima) AS MargemSeguranca
+    (SUM(l.quantidadeTotal) - i.qtdMinima) AS MargemSeguranca
 FROM insumo i
 JOIN marca m ON i.idInsumo = m.fkInsumo
 JOIN lote l ON m.idMarca = l.fkMarca
@@ -281,7 +270,7 @@ LIMIT 1;
 CREATE VIEW vw_predicao_perda_validade AS
 SELECT 
     i.nome AS Insumo,
-    l.quantidadeAtual AS QtdNoLote,
+    l.quantidadeTotal AS QtdNoLote,
     l.dataValidade,
     DATEDIFF(l.dataValidade, CURDATE()) AS DiasRestantes
 FROM lote l
@@ -289,14 +278,14 @@ JOIN marca m ON l.fkMarca = m.idMarca
 JOIN insumo i ON m.fkInsumo = i.idInsumo
 WHERE l.dataValidade > CURDATE() -- Ainda não venceu
   AND DATEDIFF(l.dataValidade, CURDATE()) <= 5 -- Vence em 5 dias ou menos
-ORDER BY l.quantidadeAtual DESC -- Prioriza os que tem maior quantidade em risco
+ORDER BY l.quantidadeTotal DESC -- Prioriza os que tem maior quantidade em risco
 LIMIT 1;
 
 
 -- 15. Financeiro Estoque: Valor total de itens cadastrados na semana atual
 CREATE VIEW vw_total_entrada_estoque_semana AS
 SELECT 
-    COALESCE(SUM(l.precoUnit * l.quantidadeAtual), 0) AS ValorTotalEntradas
+    COALESCE(SUM(l.precoUnit * l.quantidadeTotal), 0) AS ValorTotalEntradas
 FROM lote l
 WHERE YEARWEEK(l.dataEntrada, 1) = YEARWEEK(CURDATE(), 1);
 
@@ -304,12 +293,9 @@ WHERE YEARWEEK(l.dataEntrada, 1) = YEARWEEK(CURDATE(), 1);
 -- 16. Perda: Valor total de itens perdidos (Vencidos e ainda em estoque)
 CREATE VIEW vw_total_perda_validade AS
 SELECT 
-    COALESCE(SUM(l.precoUnit * l.quantidadeAtual), 0) AS ValorTotalPerda
+    COALESCE(SUM(l.precoUnit * l.quantidadeTotal), 0) AS ValorTotalPerda
 FROM lote l
 WHERE l.dataValidade < CURDATE();
-
-
-
 
 use toomate;
 
@@ -353,225 +339,183 @@ INSERT INTO fornecedor (razaoSocial, telefone, linkWhatsapp) VALUES
     ('Distribuidora de Bebidas S.A.',   '(11) 5897-2493', 'https://wa.me/551158972493');
 
 INSERT INTO insumo (fkCategoria, nome, qtdMinima, rotatividade) VALUES
-    -- 1 Proteínas
-    (1, 'Peito de Frango',        6, 1),  -- id 1
-    (1, 'Carne Bovina Moída',     5, 1),  -- id 2
-    (1, 'Carne Suína',            4, 1),  -- id 3
-
-    -- 2 Pescados
-    (2, 'Filé de Tilápia',        4, 1),  -- id 4
-    (2, 'Sardinha',               6, 0),  -- id 5
-
-    -- 3 Hortifruti
-    (3, 'Cebola',                 8, 1),  -- id 6
-    (3, 'Alho',                   3, 1),  -- id 7
-    (3, 'Tomate',                 8, 1),  -- id 8
-
-    -- 4 Laticínios
-    (4, 'Leite Integral',        12, 1),  -- id 9
-    (4, 'Queijo Mussarela',       4, 1),  -- id 10
-    (4, 'Manteiga',               3, 1),  -- id 11
-
-    -- 5 Frios e Embutidos
-    (5, 'Bacon',                  3, 1),  -- id 12
-    (5, 'Linguiça Toscana',       4, 1),  -- id 13
-    (5, 'Presunto',               3, 1),  -- id 14
-
-    -- 6 Grãos e Secos
-    (6, 'Arroz Branco',          10, 0),  -- id 15
-    (6, 'Feijão Carioca',         8, 0),  -- id 16
-    (6, 'Farinha de Trigo',       6, 0),  -- id 17
-    (6, 'Macarrão Espaguete',     8, 0),  -- id 18
-
-    -- 7 Temperos e Condimentos
-    (7, 'Sal Refinado',           3, 0),  -- id 19
-    (7, 'Pimenta do Reino',       2, 0),  -- id 20
-    (7, 'Molho de Tomate',       10, 1),  -- id 21
-    (7, 'Vinagre',                2, 0),  -- id 22
-
-    -- 8 Óleos e Gorduras
-    (8, 'Óleo de Soja',           4, 0),  -- id 23
-    (8, 'Azeite',                 2, 0),  -- id 24
-
-    -- 9 Bebidas
-    (9, 'Refrigerante',          18, 0),  -- id 25
-    (9, 'Água Mineral',          36, 0),  -- id 26
-    (9, 'Suco de Laranja',       12, 1);  -- id 27 -- ID 40
+    (4, 'Leite Integral',      10, 1), -- ID 1
+    (4, 'Queijo Mussarela',    5,  1), -- ID 2
+    (1, 'Frango Inteiro',      8,  1), -- ID 3
+    (1, 'Carne Bovina Moída',  10, 1), -- ID 4
+    (6, 'Arroz Branco',        20, 0), -- ID 5
+    (6, 'Feijão Carioca',      15, 0), -- ID 6
+    (7, 'Sal Refinado',        5,  0), -- ID 7
+    (8, 'Óleo de Soja',        6,  0), -- ID 8
+    (9, 'Refrigerante 2L',     24, 0), -- ID 9
+    (9, 'Água Mineral 500ml',  50, 0), -- ID 10
+    (4, 'Creme de Leite',      8,  1), -- ID 11
+    (4, 'Manteiga',            6,  1), -- ID 12
+    (4, 'Requeijao Cremoso',   5,  1), -- ID 13
+    (4, 'Leite Condensado',    10, 1), -- ID 14
+    (4, 'Queijo Prato',        7,  1), -- ID 15
+    (1, 'Peito de Frango',     9,  1), -- ID 16
+    (1, 'Coxa e Sobrecoxa',    9,  1), -- ID 17
+    (1, 'Carne Suina',         8,  1), -- ID 18
+    (5, 'Linguica Toscana',    7,  1), -- ID 19
+    (5, 'Bacon',               6,  1), -- ID 20
+    (2, 'File de Tilapia',     6,  1), -- ID 21
+    (6, 'Acucar Refinado',     18, 0), -- ID 22
+    (6, 'Farinha de Trigo',    16, 0), -- ID 23
+    (6, 'Macarrao Espaguete',  20, 0), -- ID 24
+    (6, 'Farinha de Mandioca', 12, 0), -- ID 25
+    (6, 'Batata Palha',        10, 0), -- ID 26
+    (3, 'Extrato de Tomate',   24, 1), -- ID 27
+    (7, 'Pimenta do Reino',    4,  0), -- ID 28
+    (7, 'Colorau',             4,  0), -- ID 29
+    (7, 'Alho Batido',         5,  0), -- ID 30
+    (7, 'Vinagre Alcool',      8,  0), -- ID 31
+    (7, 'Molho de Tomate',     20, 1), -- ID 32
+    (7, 'Louro em Po',         3,  0), -- ID 33
+    (9, 'Suco de Laranja 1L',  18, 1), -- ID 34
+    (9, 'Suco de Uva 1L',      18, 1), -- ID 35
+    (9, 'Cha Gelado 1.5L',     15, 1), -- ID 36
+    (9, 'Suco de Caju 1L',     20, 1), -- ID 37
+    (9, 'Agua sem Gas 500ml',  40, 0), -- ID 38
+    (3, 'Cebola Sacaria',      30, 1), -- ID 39
+    (3, 'Alho Sacaria',        15, 1); -- ID 40
 
 INSERT INTO marca (fkInsumo, fkFornecedor, nomeMarca) VALUES
-    -- id 1..?
-    (1,  2, 'Sadia'),
-    (1,  2, 'Seara'),
+    (1,  1, 'Italac'),          -- ID 1
+    (2,  1, 'Polenghi'),        -- ID 2
+    (3,  2, 'Seara'),           -- ID 3
+    (4,  2, 'Friboi'),          -- ID 4
+    (5,  3, 'Tio João'),        -- ID 5
+    (6,  3, 'Camil'),           -- ID 6
+    (7,  4, 'Cisne'),           -- ID 7
+    (8,  4, 'Liza'),            -- ID 8
+    (9,  5, 'Coca-Cola'),       -- ID 9
+    (10, 5, 'Crystal'),         -- ID 10
+    (11, 1, 'Piracanjuba'),     -- ID 11
+    (12, 1, 'Aviacao'),         -- ID 12
+    (13, 1, 'Vigor'),           -- ID 13
+    (14, 1, 'MoCa'),            -- ID 14
+    (15, 1, 'Tirolez'),         -- ID 15
+    (16, 2, 'Sadia'),           -- ID 16
+    (17, 2, 'Perdigao'),        -- ID 17
+    (18, 2, 'Aurora'),          -- ID 18
+    (19, 2, 'Seara Gourmet'),   -- ID 19
+    (20, 2, 'Pif Paf'),         -- ID 20
+    (21, 2, 'Copacol'),         -- ID 21
+    (22, 3, 'Uniao'),           -- ID 22
+    (23, 3, 'Dona Benta'),      -- ID 23
+    (24, 3, 'Renata'),          -- ID 24
+    (25, 3, 'Yoki'),            -- ID 25
+    (26, 3, 'Quero'),           -- ID 26
+    (27, 4, 'Elefante'),        -- ID 27
+    (28, 4, 'Kitano'),          -- ID 28
+    (29, 4, 'Sinha'),           -- ID 29
+    (30, 4, 'Temperoni'),       -- ID 30
+    (31, 4, 'Castelo'),         -- ID 31
+    (32, 4, 'Pomarola'),        -- ID 32
+    (33, 4, 'Bombay'),          -- ID 33
+    (34, 5, 'Del Valle'),       -- ID 34
+    (35, 5, 'Aurora Suco'),     -- ID 35
+    (36, 5, 'Leao Fuze'),       -- ID 36
+    (37, 5, 'Maguary'),         -- ID 37
+    (38, 5, 'Minalba'),         -- ID 38
+    (39, 3, 'Hortifruti Central'), -- ID 39
+    (40, 3, 'Hortifruti Central'); -- ID 40
 
-    (2,  2, 'Friboi'),
-    (2,  2, 'Swift'),
+-- BLOCO DE LOTES 1: Primeiro lote para cada uma das 40 marcas
+INSERT INTO lote (fkMarca, fkUsuario, precoUnit, unidadeMedida, quantidadeMedida, quantidadeTotal, dataEntrada, dataValidade) VALUES
+    (1,  1, ROUND(3.50 + RAND() * 2.00, 2),  'L',  1,   FLOOR(50 + RAND() * 100), CURDATE(), DATE_ADD(CURDATE(), INTERVAL  5 DAY)),
+    (2,  2, ROUND(35.00 + RAND() * 8.00, 2), 'kg', 1,   FLOOR(20 + RAND() * 50),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY)),
+    (3,  1, ROUND(11.00 + RAND() * 3.50, 2), 'kg', 2,   FLOOR(30 + RAND() * 60),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL  3 DAY)),
+    (4,  1, ROUND(27.00 + RAND() * 6.00, 2), 'kg', 1,   FLOOR(40 + RAND() * 80),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL  7 DAY)),
+    (5,  3, ROUND(24.90 + RAND() * 5.00, 2), 'kg', 5,   FLOOR(100 + RAND() * 200),CURDATE(), DATE_ADD(CURDATE(), INTERVAL 12 MONTH)),
+    (6,  3, ROUND(6.50 + RAND() * 1.80, 2),  'kg', 1,   FLOOR(80 + RAND() * 150), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 10 MONTH)),
+    (7,  2, ROUND(2.50 + RAND() * 1.20, 2),  'kg', 1,   FLOOR(50 + RAND() * 100), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 24 MONTH)),
+    (8,  2, ROUND(7.50 + RAND() * 3.00, 2),  'ml', 900, FLOOR(60 + RAND() * 80),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 18 MONTH)),
+    (9,  1, ROUND(8.50 + RAND() * 3.00, 2),  'L',  2,   FLOOR(150 + RAND() * 300),CURDATE(), DATE_ADD(CURDATE(), INTERVAL  6 MONTH)),
+    (10, 3, ROUND(0.90 + RAND() * 0.80, 2),  'ml', 500, FLOOR(200 + RAND() * 500),CURDATE(), DATE_ADD(CURDATE(), INTERVAL  2 YEAR)),
+    (11, 1, ROUND(4.00 + RAND() * 2.00, 2),  'g',  200, FLOOR(40 + RAND() * 60),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 20 DAY)),
+    (12, 2, ROUND(18.00 + RAND() * 6.00, 2), 'g',  500, FLOOR(20 + RAND() * 40),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 40 DAY)),
+    (13, 3, ROUND(6.00 + RAND() * 2.00, 2),  'g',  200, FLOOR(50 + RAND() * 80),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 25 DAY)),
+    (14, 1, ROUND(6.50 + RAND() * 2.00, 2),  'g',  395, FLOOR(15 + RAND() * 30),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 35 DAY)),
+    (15, 2, ROUND(32.00 + RAND() * 8.00, 2), 'kg', 1,   FLOOR(10 + RAND() * 20),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 28 DAY)),
+    (16, 1, ROUND(12.00 + RAND() * 3.00, 2), 'kg', 1,   FLOOR(30 + RAND() * 50),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 4 DAY)),
+    (17, 2, ROUND(11.00 + RAND() * 3.00, 2), 'kg', 1,   FLOOR(30 + RAND() * 50),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 5 DAY)),
+    (18, 3, ROUND(23.00 + RAND() * 7.00, 2), 'kg', 1,   FLOOR(20 + RAND() * 40),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 9 DAY)),
+    (19, 1, ROUND(17.00 + RAND() * 5.00, 2), 'kg', 1,   FLOOR(25 + RAND() * 45),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 12 DAY)),
+    (20, 2, ROUND(28.00 + RAND() * 8.00, 2), 'kg', 1,   FLOOR(15 + RAND() * 30),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 20 DAY)),
+    (21, 3, ROUND(31.00 + RAND() * 9.00, 2), 'kg', 1,   FLOOR(20 + RAND() * 35),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 10 DAY)),
+    (22, 1, ROUND(4.50 + RAND() * 1.50, 2),  'kg', 1,   FLOOR(100 + RAND() * 150),CURDATE(), DATE_ADD(CURDATE(), INTERVAL 12 MONTH)),
+    (23, 2, ROUND(5.00 + RAND() * 1.60, 2),  'kg', 1,   FLOOR(90 + RAND() * 140), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 10 MONTH)),
+    (24, 3, ROUND(3.20 + RAND() * 1.20, 2),  'g',  500, FLOOR(120 + RAND() * 200),CURDATE(), DATE_ADD(CURDATE(), INTERVAL 14 MONTH)),
+    (25, 1, ROUND(8.00 + RAND() * 2.00, 2),  'g',  500, FLOOR(40 + RAND() * 70),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 9 MONTH)),
+    (26, 2, ROUND(11.00 + RAND() * 3.00, 2), 'g',  500, FLOOR(35 + RAND() * 60),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 11 MONTH)),
+    (27, 3, ROUND(2.80 + RAND() * 1.10, 2),  'g',  340, FLOOR(100 + RAND() * 150),CURDATE(), DATE_ADD(CURDATE(), INTERVAL 7 MONTH)),
+    (28, 1, ROUND(6.00 + RAND() * 2.00, 2),  'g',  100, FLOOR(5 + RAND() * 10),   CURDATE(), DATE_ADD(CURDATE(), INTERVAL 24 MONTH)),
+    (29, 2, ROUND(4.00 + RAND() * 2.00, 2),  'g',  100, FLOOR(20 + RAND() * 40),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 18 MONTH)),
+    (30, 3, ROUND(15.00 + RAND() * 4.00, 2), 'g',  500, FLOOR(10 + RAND() * 15),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 20 MONTH)),
+    (31, 1, ROUND(3.80 + RAND() * 1.30, 2),  'ml', 750, FLOOR(30 + RAND() * 50),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 16 MONTH)),
+    (32, 2, ROUND(4.20 + RAND() * 1.40, 2),  'g',  340, FLOOR(40 + RAND() * 70),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 14 MONTH)),
+    (33, 3, ROUND(3.00 + RAND() * 1.00, 2),  'g',  50,  FLOOR(25 + RAND() * 50),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 10 MONTH)),
+    (34, 1, ROUND(7.50 + RAND() * 2.50, 2),  'L',  1,   FLOOR(80 + RAND() * 120), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 5 MONTH)),
+    (35, 2, ROUND(8.00 + RAND() * 2.70, 2),  'L',  1,   FLOOR(80 + RAND() * 110), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 5 MONTH)),
+    (36, 3, ROUND(6.20 + RAND() * 2.20, 2),  'L',  1.5, FLOOR(60 + RAND() * 90),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 4 MONTH)),
+    (37, 1, ROUND(9.50 + RAND() * 3.50, 2),  'L',  1,   FLOOR(100 + RAND() * 150),CURDATE(), DATE_ADD(CURDATE(), INTERVAL 7 MONTH)),
+    (38, 2, ROUND(2.10 + RAND() * 1.20, 2),  'ml', 500, FLOOR(120 + RAND() * 180),CURDATE(), DATE_ADD(CURDATE(), INTERVAL 2 YEAR)),
+    (39, 3, ROUND(80.00 + RAND() * 10.00, 2),'kg', 20,  FLOOR(90 + RAND() * 130), CURDATE(), DATE_ADD(CURDATE(), INTERVAL  1 MONTH)),
+    (40, 1, ROUND(120.00 + RAND() * 20.0, 2),'kg', 10,  FLOOR(40 + RAND() * 80),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL  2 MONTH));
 
-    (3,  2, 'Aurora'),
-    (3,  2, 'Perdigão'),
-
-    (4,  2, 'Copacol'),
-    (4,  2, 'Qualitá'),
-
-    (5,  2, 'Coqueiro'),
-    (5,  2, 'Gomes da Costa'),
-
-    (6,  3, 'Hortifruti Central'),
-    (6,  3, 'Sítio do João'),
-
-    (7,  3, 'Hortifruti Central'),
-    (7,  3, 'Sítio do João'),
-
-    (8,  3, 'Hortifruti Central'),
-    (8,  3, 'Sítio do João'),
-
-    (9,  1, 'Italac'),
-    (9,  1, 'Piracanjuba'),
-
-    (10, 1, 'Polenghi'),
-    (10, 1, 'Tirolez'),
-
-    (11, 1, 'Aviação'),
-    (11, 1, 'Vigor'),
-
-    (12, 2, 'Seara'),
-    (12, 2, 'Perdigão'),
-
-    (13, 2, 'Aurora'),
-    (13, 2, 'Seara'),
-
-    (14, 1, 'Sadia'),
-    (14, 1, 'Perdigão'),
-
-    (15, 3, 'Camil'),
-    (15, 3, 'Tio João'),
-
-    (16, 3, 'Camil'),
-    (16, 3, 'Kicaldo'),
-
-    (17, 3, 'Dona Benta'),
-    (17, 3, 'Sol'),
-
-    (18, 3, 'Renata'),
-    (18, 3, 'Adria'),
-
-    (19, 4, 'Cisne'),
-    (19, 4, 'Qualitá'),
-
-    (20, 4, 'Kitano'),
-    (20, 4, 'Bombay'),
-
-    (21, 4, 'Pomarola'),
-    (21, 4, 'Elefante'),
-
-    (22, 4, 'Castelo'),
-    (22, 4, 'Qualitá'),
-
-    (23, 4, 'Liza'),
-    (23, 4, 'Soya'),
-
-    (24, 4, 'Gallo'),
-    (24, 4, 'Andorinha'),
-
-    (25, 5, 'Coca-Cola'),
-    (25, 5, 'Antarctica'),
-
-    (26, 5, 'Crystal'),
-    (26, 5, 'Minalba'),
-
-    (27, 5, 'Del Valle'),
-    (27, 5, 'Maguary'); -- ID 40
-
--- 1 lote para cada marca "A" (primeira marca de cada insumo)
-INSERT INTO lote (fkMarca, fkUsuario, dataValidade, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada) VALUES
-    -- Proteínas (unidadeMedida/kg)
-    (1,  1, DATE_ADD(CURDATE(), INTERVAL  5 DAY),  15.90, 'kg', 1,  12, 10, NOW()), -- Peito de Frango (Sadia)
-    (3,  2, DATE_ADD(CURDATE(), INTERVAL  6 DAY),  32.90, 'kg', 1,  10,  7, NOW()), -- Carne Moída (Friboi)
-    (5,  1, DATE_ADD(CURDATE(), INTERVAL  7 DAY),  28.90, 'kg', 1,   8,  6, NOW()), -- Carne Suína (Aurora)
-
-    -- Pescados
-    (7,  3, DATE_ADD(CURDATE(), INTERVAL  4 DAY),  34.90, 'kg', 1,   6,  5, NOW()), -- Tilápia (Copacol)
-    (9,  3, DATE_ADD(CURDATE(), INTERVAL 10 DAY),  10.90, 'un', 1,  24, 18, NOW()), -- Sardinha (Coqueiro)
-
-    -- Hortifruti
-    (11, 2, DATE_ADD(CURDATE(), INTERVAL 12 DAY),   6.50, 'kg', 1,  10,  8, NOW()), -- Cebola
-    (13, 2, DATE_ADD(CURDATE(), INTERVAL 20 DAY),  22.00, 'kg', 1,   3,  2, NOW()), -- Alho
-    (15, 2, DATE_ADD(CURDATE(), INTERVAL  7 DAY),   8.90, 'kg', 1,   8,  6, NOW()), -- Tomate
-
-    -- Laticínios
-    (17, 1, DATE_ADD(CURDATE(), INTERVAL  8 DAY),   5.49, 'L',  1,  18, 14, NOW()), -- Leite (Italac)
-    (19, 1, DATE_ADD(CURDATE(), INTERVAL 12 DAY),  39.90, 'kg', 1,   6,  4, NOW()), -- Mussarela (Polenghi)
-    (21, 1, DATE_ADD(CURDATE(), INTERVAL 25 DAY), 17.90, 'g', 200, 12, 9, NOW()), -- Manteiga (Aviação) - tablete 200g
-
-    -- Frios/Embutidos
-    (23, 1, DATE_ADD(CURDATE(), INTERVAL 15 DAY),  29.90, 'kg', 1,   5,  4, NOW()), -- Bacon
-    (25, 2, DATE_ADD(CURDATE(), INTERVAL 12 DAY),  19.90, 'kg', 1,   6,  5, NOW()), -- Linguiça
-    (27, 2, DATE_ADD(CURDATE(), INTERVAL 10 DAY),  18.50, 'kg', 1,   4,  3, NOW()), -- Presunto
-
-    -- Grãos/Secos
-    (29, 3, DATE_ADD(CURDATE(), INTERVAL 10 MONTH), 27.90, 'kg', 5,   4,  4, NOW()), -- Arroz (pacote 5kg) qtd=4 pacotes
-    (31, 3, DATE_ADD(CURDATE(), INTERVAL  9 MONTH),  8.90, 'kg', 1,   8,  7, NOW()), -- Feijão
-    (33, 3, DATE_ADD(CURDATE(), INTERVAL  8 MONTH),  6.90, 'kg', 1,   6,  5, NOW()), -- Farinha trigo
-    (35, 3, DATE_ADD(CURDATE(), INTERVAL  9 MONTH),  4.90, 'un', 500, 10,  9, NOW()), -- Macarrão (pacote 500g)
-
-    -- Temperos/Condimentos
-    (37, 2, DATE_ADD(CURDATE(), INTERVAL 18 MONTH),  3.20, 'kg', 1,   2,  2, NOW()), -- Sal
-    (39, 2, DATE_ADD(CURDATE(), INTERVAL 24 MONTH),  6.50, 'g',  50,  6,  5, NOW()), -- Pimenta (pote 50g)
-    (41, 2, DATE_ADD(CURDATE(), INTERVAL  6 MONTH),  2.90, 'g',  340, 18, 14, NOW()), -- Molho de tomate (sachê/lata 340g)
-    (43, 2, DATE_ADD(CURDATE(), INTERVAL 18 MONTH),  4.90, 'ml', 750,  4,  3, NOW()), -- Vinagre (750ml)
-
-    -- Óleos/Gorduras
-    (45, 1, DATE_ADD(CURDATE(), INTERVAL 14 MONTH),  7.90, 'ml', 900,  6,  5, NOW()), -- Óleo (900ml)
-    (47, 1, DATE_ADD(CURDATE(), INTERVAL 18 MONTH), 29.90, 'ml', 500,  3,  2, NOW()), -- Azeite (500ml)
-
-    -- Bebidas
-    (49, 3, DATE_ADD(CURDATE(), INTERVAL  4 MONTH),  8.90, 'L',    2, 24, 20, NOW()), -- Refrigerante (2L)
-    (51, 3, DATE_ADD(CURDATE(), INTERVAL 12 MONTH),  1.20, 'ml', 500, 48, 40, NOW()), -- Água (500ml)
-    (53, 3, DATE_ADD(CURDATE(), INTERVAL  3 MONTH),  7.90, 'L',    1, 18, 15, NOW()); -- Suco (1L)
-
-INSERT INTO lote (fkMarca, fkUsuario, dataValidade, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada) VALUES
-    -- Peito de frango (Seara) - outro lote
-    (2,  2, DATE_ADD(CURDATE(), INTERVAL  2 DAY),  15.50, 'kg', 1,  8, 6, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-
-    -- Carne moída (Swift)
-    (4,  3, DATE_ADD(CURDATE(), INTERVAL  3 DAY),  33.90, 'kg', 1,  6, 4, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-
-    -- Tilápia (Qualitá)
-    (8,  1, DATE_ADD(CURDATE(), INTERVAL  2 DAY),  33.50, 'kg', 1,  4, 3, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-
-    -- Leite (Piracanjuba)
-    (18, 1, DATE_ADD(CURDATE(), INTERVAL  5 DAY),   5.29, 'L',  1, 12, 9, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-
-    -- Mussarela (Tirolez)
-    (20, 2, DATE_ADD(CURDATE(), INTERVAL  9 DAY),  41.90, 'kg', 1,  4, 3, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-
-    -- Molho de tomate (Elefante) - outro lote
-    (42, 3, DATE_ADD(CURDATE(), INTERVAL  5 MONTH), 3.10, 'g', 340, 12, 9, DATE_SUB(NOW(), INTERVAL 10 DAY)),
-
-    -- Refrigerante (Antarctica)
-    (50, 3, DATE_ADD(CURDATE(), INTERVAL  3 MONTH), 7.90, 'L',   2, 12, 8, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-
-    -- Água (Minalba)
-    (52, 2, DATE_ADD(CURDATE(), INTERVAL 11 MONTH), 1.10, 'ml', 500, 24, 18, DATE_SUB(NOW(), INTERVAL 15 DAY));
+-- BLOCO DE LOTES 2: Segundo lote para cada uma das 40 marcas
+INSERT INTO lote (fkMarca, fkUsuario, precoUnit, unidadeMedida, quantidadeMedida, quantidadeTotal, dataEntrada, dataValidade) VALUES
+    (1,  2, ROUND(3.40 + RAND() * 2.00, 2),  'L',  1,   FLOOR(30 + RAND() * 80),  DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 3 DAY)),
+    (2,  3, ROUND(36.00 + RAND() * 5.00, 2), 'kg', 1,   FLOOR(15 + RAND() * 40),  DATE_SUB(CURDATE(), INTERVAL 1 DAY), DATE_ADD(CURDATE(), INTERVAL 10 DAY)),
+    (3,  2, ROUND(10.00 + RAND() * 3.00, 2), 'kg', 2,   FLOOR(20 + RAND() * 40),  DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_SUB(CURDATE(), INTERVAL 1 DAY)),
+    (4,  3, ROUND(26.50 + RAND() * 5.00, 2), 'kg', 1,   FLOOR(30 + RAND() * 60),  DATE_SUB(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 4 DAY)),
+    (5,  1, ROUND(25.20 + RAND() * 4.00, 2), 'kg', 5,   FLOOR(80 + RAND() * 120), DATE_SUB(CURDATE(), INTERVAL 20 DAY), DATE_ADD(CURDATE(), INTERVAL 11 MONTH)),
+    (6,  1, ROUND(6.10 + RAND() * 1.50, 2),  'kg', 1,   FLOOR(70 + RAND() * 120), DATE_SUB(CURDATE(), INTERVAL 15 DAY), DATE_ADD(CURDATE(), INTERVAL 9 MONTH)),
+    (7,  3, ROUND(2.40 + RAND() * 1.00, 2),  'kg', 1,   FLOOR(40 + RAND() * 80),  DATE_SUB(CURDATE(), INTERVAL 30 DAY), DATE_ADD(CURDATE(), INTERVAL 23 MONTH)),
+    (8,  1, ROUND(7.20 + RAND() * 2.00, 2),  'ml', 900, FLOOR(50 + RAND() * 70),  DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_ADD(CURDATE(), INTERVAL 17 MONTH)),
+    (9,  2, ROUND(8.20 + RAND() * 2.00, 2),  'L',  2,   FLOOR(100 + RAND() * 200),DATE_SUB(CURDATE(), INTERVAL 4 DAY), DATE_ADD(CURDATE(), INTERVAL 5 MONTH)),
+    (10, 1, ROUND(0.85 + RAND() * 0.50, 2),  'ml', 500, FLOOR(150 + RAND() * 350),DATE_SUB(CURDATE(), INTERVAL 8 DAY), DATE_ADD(CURDATE(), INTERVAL 23 MONTH)),
+    (11, 2, ROUND(4.10 + RAND() * 1.50, 2),  'g',  200, FLOOR(30 + RAND() * 50),  DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 18 DAY)),
+    (12, 3, ROUND(17.50 + RAND() * 5.00, 2), 'g',  500, FLOOR(15 + RAND() * 30),  DATE_SUB(CURDATE(), INTERVAL 4 DAY), DATE_ADD(CURDATE(), INTERVAL 36 DAY)),
+    (13, 1, ROUND(5.80 + RAND() * 1.50, 2),  'g',  200, FLOOR(40 + RAND() * 70),  DATE_SUB(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 22 DAY)),
+    (14, 3, ROUND(6.80 + RAND() * 1.50, 2),  'g',  395, FLOOR(10 + RAND() * 25),  DATE_SUB(CURDATE(), INTERVAL 1 DAY), DATE_ADD(CURDATE(), INTERVAL 34 DAY)),
+    (15, 1, ROUND(31.00 + RAND() * 6.00, 2), 'kg', 1,   FLOOR(8 + RAND() * 15),   DATE_SUB(CURDATE(), INTERVAL 6 DAY), DATE_ADD(CURDATE(), INTERVAL 22 DAY)),
+    (16, 2, ROUND(11.50 + RAND() * 2.50, 2), 'kg', 1,   FLOOR(20 + RAND() * 45),  DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY)),
+    (17, 3, ROUND(10.50 + RAND() * 2.50, 2), 'kg', 1,   FLOOR(20 + RAND() * 40),  DATE_SUB(CURDATE(), INTERVAL 8 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY)),
+    (18, 1, ROUND(22.00 + RAND() * 5.00, 2), 'kg', 1,   FLOOR(15 + RAND() * 35),  DATE_SUB(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 6 DAY)),
+    (19, 2, ROUND(16.50 + RAND() * 4.00, 2), 'kg', 1,   FLOOR(20 + RAND() * 35),  DATE_SUB(CURDATE(), INTERVAL 4 DAY), DATE_ADD(CURDATE(), INTERVAL 8 DAY)),
+    (20, 3, ROUND(27.00 + RAND() * 6.00, 2), 'kg', 1,   FLOOR(10 + RAND() * 25),  DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_ADD(CURDATE(), INTERVAL 15 DAY)),
+    (21, 1, ROUND(30.00 + RAND() * 7.00, 2), 'kg', 1,   FLOOR(15 + RAND() * 30),  DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 8 DAY)),
+    (22, 2, ROUND(4.30 + RAND() * 1.00, 2),  'kg', 1,   FLOOR(80 + RAND() * 120), DATE_SUB(CURDATE(), INTERVAL 12 DAY), DATE_ADD(CURDATE(), INTERVAL 11 MONTH)),
+    (23, 3, ROUND(4.80 + RAND() * 1.20, 2),  'kg', 1,   FLOOR(70 + RAND() * 110), DATE_SUB(CURDATE(), INTERVAL 18 DAY), DATE_ADD(CURDATE(), INTERVAL 9 MONTH)),
+    (24, 1, ROUND(3.00 + RAND() * 1.00, 2),  'g',  500, FLOOR(100 + RAND() * 150),DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_ADD(CURDATE(), INTERVAL 13 MONTH)),
+    (25, 2, ROUND(7.50 + RAND() * 1.50, 2),  'g',  500, FLOOR(30 + RAND() * 50),  DATE_SUB(CURDATE(), INTERVAL 14 DAY), DATE_ADD(CURDATE(), INTERVAL 8 MONTH)),
+    (26, 3, ROUND(10.50 + RAND() * 2.00, 2), 'g',  500, FLOOR(25 + RAND() * 50),  DATE_SUB(CURDATE(), INTERVAL 20 DAY), DATE_ADD(CURDATE(), INTERVAL 10 MONTH)),
+    (27, 1, ROUND(2.60 + RAND() * 0.90, 2),  'g',  340, FLOOR(80 + RAND() * 120), DATE_SUB(CURDATE(), INTERVAL 5 DAY),  DATE_ADD(CURDATE(), INTERVAL 6 MONTH)),
+    (28, 2, ROUND(5.80 + RAND() * 1.00, 2),  'g',  100, FLOOR(4 + RAND() * 6),    DATE_SUB(CURDATE(), INTERVAL 45 DAY), DATE_ADD(CURDATE(), INTERVAL 22 MONTH)),
+    (29, 3, ROUND(3.80 + RAND() * 1.50, 2),  'g',  100, FLOOR(15 + RAND() * 30),  DATE_SUB(CURDATE(), INTERVAL 15 DAY), DATE_ADD(CURDATE(), INTERVAL 17 MONTH)),
+    (30, 1, ROUND(14.00 + RAND() * 3.00, 2), 'g',  500, FLOOR(8 + RAND() * 12),   DATE_SUB(CURDATE(), INTERVAL 8 DAY),  DATE_ADD(CURDATE(), INTERVAL 19 MONTH)),
+    (31, 2, ROUND(3.60 + RAND() * 1.00, 2),  'ml', 750, FLOOR(20 + RAND() * 40),  DATE_SUB(CURDATE(), INTERVAL 12 DAY), DATE_ADD(CURDATE(), INTERVAL 15 MONTH)),
+    (32, 3, ROUND(4.00 + RAND() * 1.00, 2),  'g',  340, FLOOR(30 + RAND() * 50),  DATE_SUB(CURDATE(), INTERVAL 6 DAY),  DATE_ADD(CURDATE(), INTERVAL 13 MONTH)),
+    (33, 1, ROUND(2.50 + RAND() * 1.00, 2),  'g',  50,  FLOOR(15 + RAND() * 35),  DATE_SUB(CURDATE(), INTERVAL 25 DAY), DATE_ADD(CURDATE(), INTERVAL 9 MONTH)),
+    (34, 2, ROUND(7.00 + RAND() * 2.00, 2),  'L',  1,   FLOOR(60 + RAND() * 100), DATE_SUB(CURDATE(), INTERVAL 4 DAY),  DATE_ADD(CURDATE(), INTERVAL 4 MONTH)),
+    (35, 3, ROUND(7.60 + RAND() * 2.00, 2),  'L',  1,   FLOOR(60 + RAND() * 90),  DATE_SUB(CURDATE(), INTERVAL 5 DAY),  DATE_ADD(CURDATE(), INTERVAL 4 MONTH)),
+    (36, 1, ROUND(5.90 + RAND() * 1.50, 2),  'L',  1.5, FLOOR(40 + RAND() * 70),  DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_ADD(CURDATE(), INTERVAL 3 MONTH)),
+    (37, 2, ROUND(9.00 + RAND() * 2.50, 2),  'L',  1,   FLOOR(80 + RAND() * 120), DATE_SUB(CURDATE(), INTERVAL 3 DAY),  DATE_ADD(CURDATE(), INTERVAL 6 MONTH)),
+    (38, 3, ROUND(2.00 + RAND() * 0.90, 2),  'ml', 500, FLOOR(100 + RAND() * 140),DATE_SUB(CURDATE(), INTERVAL 6 DAY),  DATE_ADD(CURDATE(), INTERVAL 23 MONTH)),
+    (39, 1, ROUND(78.50 + RAND() * 8.00, 2), 'kg', 20,  FLOOR(60 + RAND() * 100), DATE_SUB(CURDATE(), INTERVAL 4 DAY),  DATE_ADD(CURDATE(), INTERVAL 20 DAY)),
+    (40, 2, ROUND(110.00 + RAND() * 15.0, 2),'kg', 10,  FLOOR(30 + RAND() * 60),  DATE_SUB(CURDATE(), INTERVAL 5 DAY),  DATE_ADD(CURDATE(), INTERVAL 45 DAY));
 
 -- BLOCO DE LOTES 3: Terceiro lote para produtos de altíssima saída em restaurantes
-INSERT INTO lote (fkMarca, fkUsuario, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada, dataValidade) VALUES
-    -- Arroz (ex: pacotes de 5kg) - alta saída, mas em volumes plausíveis
-    (5,  1, ROUND(25.30 + RAND() * 3.00, 2), 'kg', 5,   FLOOR(8  + RAND() * 8),  FLOOR(4  + RAND() * 6),  NOW(), DATE_ADD(CURDATE(), INTERVAL 14 MONTH)),
-
-    -- Feijão (1kg)
-    (6,  2, ROUND(6.40  + RAND() * 1.00, 2), 'kg', 1,   FLOOR(10 + RAND() * 10), FLOOR(6  + RAND() * 8),  NOW(), DATE_ADD(CURDATE(), INTERVAL 11 MONTH)),
-
-    -- Refrigerante (2L)
-    (9,  3, ROUND(8.60  + RAND() * 1.50, 2), 'L',  2,   FLOOR(12 + RAND() * 12), FLOOR(6  + RAND() * 10), NOW(), DATE_ADD(CURDATE(), INTERVAL 7 MONTH)),
-
-    -- Peito de Frango (1kg)
-    (16, 1, ROUND(12.20 + RAND() * 2.00, 2), 'kg', 1,   FLOOR(10 + RAND() * 10), FLOOR(5  + RAND() * 8),  NOW(), DATE_ADD(CURDATE(), INTERVAL 6 DAY)),
-
-    -- Macarrão (pacote 500g)
-    (24, 2, ROUND(3.30  + RAND() * 1.00, 2), 'g',  500, FLOOR(12 + RAND() * 12), FLOOR(6  + RAND() * 10), NOW(), DATE_ADD(CURDATE(), INTERVAL 15 MONTH)),
-
-    -- Cebola (ex: saco de 20kg) - restaurante pequeno não teria 80 sacos; coloquei baixo
-    (39, 3, ROUND(82.90 + RAND() * 5.00, 2), 'kg', 20,  FLOOR(2  + RAND() * 3),  FLOOR(1  + RAND() * 2),  NOW(), DATE_ADD(CURDATE(), INTERVAL 25 DAY));
+INSERT INTO lote (fkMarca, fkUsuario, precoUnit, unidadeMedida, quantidadeMedida, quantidadeTotal, dataEntrada, dataValidade) VALUES
+    (5,  1, ROUND(25.30 + RAND() * 3.00, 2), 'kg', 5,   FLOOR(90 + RAND() * 110), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 14 MONTH)),
+    (6,  2, ROUND(6.40 + RAND() * 1.00, 2),  'kg', 1,   FLOOR(80 + RAND() * 110), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 11 MONTH)),
+    (9,  3, ROUND(8.60 + RAND() * 1.50, 2),  'L',  2,   FLOOR(120 + RAND() * 180),CURDATE(), DATE_ADD(CURDATE(), INTERVAL 7 MONTH)),
+    (16, 1, ROUND(12.20 + RAND() * 2.00, 2), 'kg', 1,   FLOOR(25 + RAND() * 40),  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 6 DAY)),
+    (24, 2, ROUND(3.30 + RAND() * 1.00, 2),  'g',  500, FLOOR(110 + RAND() * 160),CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 MONTH)),
+    (39, 3, ROUND(82.90 + RAND() * 5.00, 2), 'kg', 20,  FLOOR(80 + RAND() * 120), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 25 DAY));
 
 
 INSERT INTO boleto (descricao, categoria, pago, dataVencimento, dataPagamento, valor, fkFornecedor) VALUES

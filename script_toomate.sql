@@ -68,13 +68,24 @@ CREATE TABLE lote (
     precoUnit DECIMAL(5,2),
     unidadeMedida VARCHAR(20),
     quantidadeMedida DOUBLE,
-    quantidadeTotal INT,
-    dataEntrada DATE,
+    quantidadeOriginal INT,
+    quantidadeAtual INT,
+    dataEntrada DATETIME,
     fkMarca INT,
     fkUsuario INT,
     CONSTRAINT fk_lote_marca FOREIGN KEY (fkMarca) REFERENCES marca(idMarca),
     CONSTRAINT fk_lote_usuario FOREIGN KEY (fkUsuario) REFERENCES Usuario(idUsuario)
 );
+
+
+CREATE TABLE historicoLote (
+    idHistorico INT PRIMARY KEY AUTO_INCREMENT,
+    fkLote INT,
+    quantidadeRetirada INT,
+    dataHoraAlteracao DATETIME,
+    CONSTRAINT fk_historicoLote_lote FOREIGN KEY (fkLote) REFERENCES lote(idLote)
+);
+
 
 CREATE TABLE arquivo (
     idArquivo INT PRIMARY KEY AUTO_INCREMENT,
@@ -104,7 +115,7 @@ CREATE TABLE cliente (
 
 CREATE TABLE divida (
     idDivida INT PRIMARY KEY AUTO_INCREMENT,
-    valor DECIMAL(6,2),
+    valor DECIMAL(10,2),
     dataCompra DATETIME,
     dataPagamento DATETIME,
     pedido VARCHAR(200),
@@ -120,7 +131,7 @@ CREATE TABLE boleto (
     pago TINYINT,
     dataVencimento DATETIME,
     dataPagamento DATETIME,
-    valor DECIMAL(6,2),
+    valor DECIMAL(10,2),
     fkFornecedor INT,
     CONSTRAINT fk_boleto_fornecedor FOREIGN KEY (fkFornecedor) REFERENCES fornecedor(idFornecedor)
 );
@@ -132,7 +143,7 @@ CREATE VIEW vw_kpi_validade_proxima AS
 SELECT 
     i.nome AS Insumo, 
     l.dataValidade, 
-    l.quantidadeTotal AS QtdAtual,
+    l.quantidadeAtual AS QtdAtual,
     DATEDIFF(l.dataValidade, CURDATE()) AS DiasParaVencer
 FROM lote l
 JOIN marca m ON l.fkMarca = m.idMarca
@@ -144,7 +155,7 @@ WHERE l.dataValidade <= DATE_ADD(CURDATE(), INTERVAL 7 DAY);
 CREATE VIEW vw_kpi_estoque_baixo AS
 SELECT 
     i.nome AS Insumo,
-    SUM(l.quantidadeTotal) AS EstoqueTotal,
+    SUM(l.quantidadeAtual) AS EstoqueTotal,
     i.qtdMinima
 FROM insumo i
 LEFT JOIN marca m ON i.idInsumo = m.fkInsumo
@@ -164,10 +175,10 @@ WHERE pago = 0 AND dataVencimento < CURDATE();
 CREATE VIEW vw_grafico_estoque_vs_minimo AS
 SELECT 
     i.nome AS Insumo,
-    COALESCE(SUM(l.quantidadeTotal), 0) AS EstoqueAtual,
+    COALESCE(SUM(l.quantidadeAtual), 0) AS EstoqueAtual,
     i.qtdMinima AS EstoqueMinimo,
     CASE 
-        WHEN COALESCE(SUM(l.quantidadeTotal), 0) < i.qtdMinima THEN 'Repor Urgente'
+        WHEN COALESCE(SUM(l.quantidadeAtual), 0) < i.qtdMinima THEN 'Repor Urgente'
         ELSE 'OK' 
     END AS Status
 FROM insumo i
@@ -254,9 +265,9 @@ LIMIT 1;
 CREATE VIEW vw_predicao_falta_estoque AS
 SELECT 
     i.nome AS Insumo,
-    SUM(l.quantidadeTotal) AS EstoqueAtual,
+    SUM(l.quantidadeAtual) AS EstoqueAtual,
     i.qtdMinima,
-    (SUM(l.quantidadeTotal) - i.qtdMinima) AS MargemSeguranca
+    (SUM(l.quantidadeAtual) - i.qtdMinima) AS MargemSeguranca
 FROM insumo i
 JOIN marca m ON i.idInsumo = m.fkInsumo
 JOIN lote l ON m.idMarca = l.fkMarca
@@ -270,7 +281,7 @@ LIMIT 1;
 CREATE VIEW vw_predicao_perda_validade AS
 SELECT 
     i.nome AS Insumo,
-    l.quantidadeTotal AS QtdNoLote,
+    l.quantidadeAtual AS QtdNoLote,
     l.dataValidade,
     DATEDIFF(l.dataValidade, CURDATE()) AS DiasRestantes
 FROM lote l
@@ -278,14 +289,14 @@ JOIN marca m ON l.fkMarca = m.idMarca
 JOIN insumo i ON m.fkInsumo = i.idInsumo
 WHERE l.dataValidade > CURDATE() -- Ainda não venceu
   AND DATEDIFF(l.dataValidade, CURDATE()) <= 5 -- Vence em 5 dias ou menos
-ORDER BY l.quantidadeTotal DESC -- Prioriza os que tem maior quantidade em risco
+ORDER BY l.quantidadeAtual DESC -- Prioriza os que tem maior quantidade em risco
 LIMIT 1;
 
 
 -- 15. Financeiro Estoque: Valor total de itens cadastrados na semana atual
 CREATE VIEW vw_total_entrada_estoque_semana AS
 SELECT 
-    COALESCE(SUM(l.precoUnit * l.quantidadeTotal), 0) AS ValorTotalEntradas
+    COALESCE(SUM(l.precoUnit * l.quantidadeAtual), 0) AS ValorTotalEntradas
 FROM lote l
 WHERE YEARWEEK(l.dataEntrada, 1) = YEARWEEK(CURDATE(), 1);
 
@@ -293,6 +304,6 @@ WHERE YEARWEEK(l.dataEntrada, 1) = YEARWEEK(CURDATE(), 1);
 -- 16. Perda: Valor total de itens perdidos (Vencidos e ainda em estoque)
 CREATE VIEW vw_total_perda_validade AS
 SELECT 
-    COALESCE(SUM(l.precoUnit * l.quantidadeTotal), 0) AS ValorTotalPerda
+    COALESCE(SUM(l.precoUnit * l.quantidadeAtual), 0) AS ValorTotalPerda
 FROM lote l
 WHERE l.dataValidade < CURDATE();
