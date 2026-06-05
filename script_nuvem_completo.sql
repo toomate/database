@@ -73,6 +73,7 @@ CREATE TABLE lote (
     quantidadeOriginal INT,
     quantidadeAtual INT,
     dataEntrada DATETIME,
+    ativo TINYINT,
     fkMarca INT,
     fkUsuario INT,
     CONSTRAINT fk_lote_marca FOREIGN KEY (fkMarca) REFERENCES marca(idMarca),
@@ -439,61 +440,61 @@ INSERT INTO marca (fkInsumo, fkFornecedor, nomeMarca) VALUES
     (27, 5, 'Del Valle'),
     (27, 5, 'Maguary'); 
 
-INSERT INTO lote (fkMarca, fkUsuario, dataValidade, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada) VALUES
-    (1,  1, DATE_ADD(CURDATE(), INTERVAL  5 DAY),  15.90, 'kg', 1,  12, 10, NOW()), -- Peito de Frango (Sadia)
-    (3,  2, DATE_ADD(CURDATE(), INTERVAL  6 DAY),  32.90, 'kg', 1,  10,  7, NOW()), -- Carne Moida (Friboi)
-    (5,  1, DATE_ADD(CURDATE(), INTERVAL  7 DAY),  28.90, 'kg', 1,   8,  6, NOW()), -- Carne Suina (Aurora)
-    (7,  3, DATE_ADD(CURDATE(), INTERVAL  4 DAY),  34.90, 'kg', 1,   6,  5, NOW()), -- TilApia (Copacol)
-    (9,  3, DATE_ADD(CURDATE(), INTERVAL 10 DAY),  10.90, 'un', 1,  24, 18, NOW()), -- Sardinha (Coqueiro)
-    (11, 2, DATE_ADD(CURDATE(), INTERVAL 12 DAY),   6.50, 'kg', 1,  10,  8, NOW()), -- Cebola
-    (13, 2, DATE_ADD(CURDATE(), INTERVAL 20 DAY),  22.00, 'kg', 1,   3,  2, NOW()), -- Alho
-    (15, 2, DATE_ADD(CURDATE(), INTERVAL  7 DAY),   8.90, 'kg', 1,   8,  6, NOW()), -- Tomate
-    (17, 1, DATE_ADD(CURDATE(), INTERVAL  8 DAY),   5.49, 'L',  1,  18, 14, NOW()), -- Leite (Italac)
-    (19, 1, DATE_ADD(CURDATE(), INTERVAL 12 DAY),  39.90, 'kg', 1,   6,  4, NOW()), -- Mussarela (Polenghi)
-    (21, 1, DATE_ADD(CURDATE(), INTERVAL 25 DAY), 17.90, 'g', 200, 12, 9, NOW()), -- Manteiga (Aviacao) - tablete 200g
-    (23, 1, DATE_ADD(CURDATE(), INTERVAL 15 DAY),  29.90, 'kg', 1,   5,  4, NOW()), -- Bacon
-    (25, 2, DATE_ADD(CURDATE(), INTERVAL 12 DAY),  19.90, 'kg', 1,   6,  5, NOW()), -- Linguiça
-    (27, 2, DATE_ADD(CURDATE(), INTERVAL 10 DAY),  18.50, 'kg', 1,   4,  3, NOW()), -- Presunto
-    (29, 3, DATE_ADD(CURDATE(), INTERVAL 10 MONTH), 27.90, 'kg', 5,   4,  4, NOW()), -- Arroz (pacote 5kg) qtd=4 pacotes
-    (31, 3, DATE_ADD(CURDATE(), INTERVAL  9 MONTH),  8.90, 'kg', 1,   8,  7, NOW()), -- Feijao
-    (33, 3, DATE_ADD(CURDATE(), INTERVAL  8 MONTH),  6.90, 'kg', 1,   6,  5, NOW()), -- Farinha trigo
-    (35, 3, DATE_ADD(CURDATE(), INTERVAL  9 MONTH),  4.90, 'un', 500, 10,  9, NOW()), -- Macarrao (pacote 500g)
-    (37, 2, DATE_ADD(CURDATE(), INTERVAL 18 MONTH),  3.20, 'kg', 1,   2,  2, NOW()), -- Sal
-    (39, 2, DATE_ADD(CURDATE(), INTERVAL 24 MONTH),  6.50, 'g',  50,  6,  5, NOW()), -- Pimenta (pote 50g)
-    (43, 2, DATE_AD(CURDATE(), INTERVAL 18 MONTH),  4.90, 'ml', 750,  4,  3, NOW()), -- Vinagre (750ml)
-    (45, 1, DATE_ADD(CURDATE(), INTERVAL 14 MONTH),  7.90, 'ml', 900,  6,  5, NOW()), -- Oleo (900ml
-    (49, 3, DATE_ADD(CURDATE(), INTERVAL  4 MONTH),  8.90, 'L',    2, 24, 20, NOW()), -- Refrigerante (2L)
-    (53, 3, DATE_ADD(CURDATE(), INTERVAL  3 MONTH),  7.90, 'L',    1, 18, 15, NOW()); -- Suco (1L)
+INSERT INTO lote (fkMarca, fkUsuario, dataValidade, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada, ativo) VALUES
+    (1,  1, DATE_ADD(CURDATE(), INTERVAL  5 DAY),  15.90, 'kg', 1,  12, 10, NOW(), 1), -- Peito de Frango (Sadia)
+    (3,  2, DATE_ADD(CURDATE(), INTERVAL  6 DAY),  32.90, 'kg', 1,  10,  7, NOW(), 1), -- Carne Moida (Friboi)
+    (5,  1, DATE_ADD(CURDATE(), INTERVAL  7 DAY),  28.90, 'kg', 1,   8,  6, NOW(), 1), -- Carne Suina (Aurora)
+    (7,  3, DATE_ADD(CURDATE(), INTERVAL  4 DAY),  34.90, 'kg', 1,   6,  5, NOW(), 1), -- TilApia (Copacol)
+    (9,  3, DATE_ADD(CURDATE(), INTERVAL 10 DAY),  10.90, 'un', 1,  24, 18, NOW(), 1), -- Sardinha (Coqueiro)
+    (11, 2, DATE_ADD(CURDATE(), INTERVAL 12 DAY),   6.50, 'kg', 1,  10,  8, NOW(), 1), -- Cebola
+    (13, 2, DATE_ADD(CURDATE(), INTERVAL 20 DAY),  22.00, 'kg', 1,   3,  2, NOW(), 1), -- Alho
+    (15, 2, DATE_ADD(CURDATE(), INTERVAL  7 DAY),   8.90, 'kg', 1,   8,  6, NOW(), 1), -- Tomate
+    (17, 1, DATE_ADD(CURDATE(), INTERVAL  8 DAY),   5.49, 'L',  1,  18, 14, NOW(), 1), -- Leite (Italac)
+    (19, 1, DATE_ADD(CURDATE(), INTERVAL 12 DAY),  39.90, 'kg', 1,   6,  4, NOW(), 1), -- Mussarela (Polenghi)
+    (21, 1, DATE_ADD(CURDATE(), INTERVAL 25 DAY), 17.90, 'g', 200, 12, 9, NOW(), 1), -- Manteiga (Aviacao) - tablete 200g
+    (23, 1, DATE_ADD(CURDATE(), INTERVAL 15 DAY),  29.90, 'kg', 1,   5,  4, NOW(), 1), -- Bacon
+    (25, 2, DATE_ADD(CURDATE(), INTERVAL 12 DAY),  19.90, 'kg', 1,   6,  5, NOW(), 1), -- Linguiça
+    (27, 2, DATE_ADD(CURDATE(), INTERVAL 10 DAY),  18.50, 'kg', 1,   4,  3, NOW(), 1), -- Presunto
+    (29, 3, DATE_ADD(CURDATE(), INTERVAL 10 MONTH), 27.90, 'kg', 5,   4,  4, NOW(), 1), -- Arroz (pacote 5kg) qtd=4 pacotes
+    (31, 3, DATE_ADD(CURDATE(), INTERVAL  9 MONTH),  8.90, 'kg', 1,   8,  7, NOW(), 1), -- Feijao
+    (33, 3, DATE_ADD(CURDATE(), INTERVAL  8 MONTH),  6.90, 'kg', 1,   6,  5, NOW(), 1), -- Farinha trigo
+    (35, 3, DATE_ADD(CURDATE(), INTERVAL  9 MONTH),  4.90, 'un', 500, 10,  9, NOW(), 1), -- Macarrao (pacote 500g)
+    (37, 2, DATE_ADD(CURDATE(), INTERVAL 18 MONTH),  3.20, 'kg', 1,   2,  2, NOW(), 1), -- Sal
+    (39, 2, DATE_ADD(CURDATE(), INTERVAL 24 MONTH),  6.50, 'g',  50,  6,  5, NOW(), 1), -- Pimenta (pote 50g)
+    (43, 2, DATE_AD(CURDATE(), INTERVAL 18 MONTH),  4.90, 'ml', 750,  4,  3, NOW(), 1), -- Vinagre (750ml)
+    (45, 1, DATE_ADD(CURDATE(), INTERVAL 14 MONTH),  7.90, 'ml', 900,  6,  5, NOW(), 1), -- Oleo (900ml
+    (49, 3, DATE_ADD(CURDATE(), INTERVAL  4 MONTH),  8.90, 'L',    2, 24, 20, NOW(), 1), -- Refrigerante (2L)
+    (53, 3, DATE_ADD(CURDATE(), INTERVAL  3 MONTH),  7.90, 'L',    1, 18, 15, NOW(), 1); -- Suco (1L)
 
-INSERT INTO lote (fkMarca, fkUsuario, dataValidade, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada) VALUES
-    (2,  2, DATE_ADD(CURDATE(), INTERVAL  2 DAY),  15.50, 'kg', 1,  8, 6, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-    (4,  3, DATE_ADD(CURDATE(), INTERVAL  3 DAY),  33.90, 'kg', 1,  6, 4, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-    (8,  1, DATE_ADD(CURDATE(), INTERVAL  2 DAY),  33.50, 'kg', 1,  4, 3, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-    (18, 1, DATE_ADD(CURDATE(), INTERVAL  5 DAY),   5.29, 'L',  1, 12, 9, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-    (20, 2, DATE_ADD(CURDATE(), INTERVAL  9 DAY),  41.90, 'kg', 1,  4, 3, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-    (42, 3, DATE_ADD(CURDATE(), INTERVAL  5 MONTH), 3.10, 'g', 340, 12, 9, DATE_SUB(NOW(), INTERVAL 10 DAY)),
-    (50, 3, DATE_ADD(CURDATE(), INTERVAL  3 MONTH), 7.90, 'L',   2, 12, 8, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    (52, 2, DATE_ADD(CURDATE(), INTERVAL 11 MONTH), 1.10, 'ml', 500, 24, 18, DATE_SUB(NOW(), INTERVAL 15 DAY));
+INSERT INTO lote (fkMarca, fkUsuario, dataValidade, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada, ativo) VALUES
+    (2,  2, DATE_ADD(CURDATE(), INTERVAL  2 DAY),  15.50, 'kg', 1,  8, 6, DATE_SUB(NOW(), INTERVAL 2 DAY), 1),
+    (4,  3, DATE_ADD(CURDATE(), INTERVAL  3 DAY),  33.90, 'kg', 1,  6, 4, DATE_SUB(NOW(), INTERVAL 1 DAY), 1),
+    (8,  1, DATE_ADD(CURDATE(), INTERVAL  2 DAY),  33.50, 'kg', 1,  4, 3, DATE_SUB(NOW(), INTERVAL 1 DAY), 1),
+    (18, 1, DATE_ADD(CURDATE(), INTERVAL  5 DAY),   5.29, 'L',  1, 12, 9, DATE_SUB(NOW(), INTERVAL 3 DAY), 1),
+    (20, 2, DATE_ADD(CURDATE(), INTERVAL  9 DAY),  41.90, 'kg', 1,  4, 3, DATE_SUB(NOW(), INTERVAL 2 DAY), 1),
+    (42, 3, DATE_ADD(CURDATE(), INTERVAL  5 MONTH), 3.10, 'g', 340, 12, 9, DATE_SUB(NOW(), INTERVAL 10 DAY), 1),
+    (50, 3, DATE_ADD(CURDATE(), INTERVAL  3 MONTH), 7.90, 'L',   2, 12, 8, DATE_SUB(NOW(), INTERVAL 5 DAY), 1),
+    (52, 2, DATE_ADD(CURDATE(), INTERVAL 11 MONTH), 1.10, 'ml', 500, 24, 18, DATE_SUB(NOW(), INTERVAL 15 DAY), 1);
 
 -- BLOCO DE LOTES 3: Terceiro lote para produtos de altissima saida em restaurantes
-INSERT INTO lote (fkMarca, fkUsuario, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada, dataValidade) VALUES
+INSERT INTO lote (fkMarca, fkUsuario, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada, dataValidade, ativo) VALUES
     -- Arroz (ex: pacotes de 5kg) - alta saida, mas em volumes plausiveis
-    (5,  1, ROUND(25.30 + RAND() * 3.00, 2), 'kg', 5,   FLOOR(8  + RAND() * 8),  FLOOR(4  + RAND() * 6),  NOW(), DATE_ADD(CURDATE(), INTERVAL 14 MONTH)),
+    (5,  1, ROUND(25.30 + RAND() * 3.00, 2), 'kg', 5,   FLOOR(8  + RAND() * 8),  FLOOR(4  + RAND() * 6),  NOW(), DATE_ADD(CURDATE(), INTERVAL 14 MONTH), 1),
 
     -- Feijao (1kg)
-    (6,  2, ROUND(6.40  + RAND() * 1.00, 2), 'kg', 1,   FLOOR(10 + RAND() * 10), FLOOR(6  + RAND() * 8),  NOW(), DATE_ADD(CURDATE(), INTERVAL 11 MONTH)),
+    (6,  2, ROUND(6.40  + RAND() * 1.00, 2), 'kg', 1,   FLOOR(10 + RAND() * 10), FLOOR(6  + RAND() * 8),  NOW(), DATE_ADD(CURDATE(), INTERVAL 11 MONTH), 1),
 
     -- Refrigerante (2L)
-    (9,  3, ROUND(8.60  + RAND() * 1.50, 2), 'L',  2,   FLOOR(12 + RAND() * 12), FLOOR(6  + RAND() * 10), NOW(), DATE_ADD(CURDATE(), INTERVAL 7 MONTH)),
+    (9,  3, ROUND(8.60  + RAND() * 1.50, 2), 'L',  2,   FLOOR(12 + RAND() * 12), FLOOR(6  + RAND() * 10), NOW(), DATE_ADD(CURDATE(), INTERVAL 7 MONTH), 1),
 
     -- Peito de Frango (1kg)
-    (16, 1, ROUND(12.20 + RAND() * 2.00, 2), 'kg', 1,   FLOOR(10 + RAND() * 10), FLOOR(5  + RAND() * 8),  NOW(), DATE_ADD(CURDATE(), INTERVAL 6 DAY)),
+    (16, 1, ROUND(12.20 + RAND() * 2.00, 2), 'kg', 1,   FLOOR(10 + RAND() * 10), FLOOR(5  + RAND() * 8),  NOW(), DATE_ADD(CURDATE(), INTERVAL 6 DAY), 1),
 
     -- Macarrao (pacote 500g)
-    (24, 2, ROUND(3.30  + RAND() * 1.00, 2), 'g',  500, FLOOR(12 + RAND() * 12), FLOOR(6  + RAND() * 10), NOW(), DATE_ADD(CURDATE(), INTERVAL 15 MONTH)),
+    (24, 2, ROUND(3.30  + RAND() * 1.00, 2), 'g',  500, FLOOR(12 + RAND() * 12), FLOOR(6  + RAND() * 10), NOW(), DATE_ADD(CURDATE(), INTERVAL 15 MONTH), 1),
 
     -- Cebola (ex: saco de 20kg) - restaurante pequeno nao teria 80 sacos; coloquei baixo
-    (39, 3, ROUND(82.90 + RAND() * 5.00, 2), 'kg', 20,  FLOOR(2  + RAND() * 3),  FLOOR(1  + RAND() * 2),  NOW(), DATE_ADD(CURDATE(), INTERVAL 25 DAY));
+    (39, 3, ROUND(82.90 + RAND() * 5.00, 2), 'kg', 20,  FLOOR(2  + RAND() * 3),  FLOOR(1  + RAND() * 2),  NOW(), DATE_ADD(CURDATE(), INTERVAL 25 DAY), 1);
 
 
 INSERT INTO boleto (descricao, categoria, pago, dataVencimento, dataPagamento, valor, fkFornecedor) VALUES
