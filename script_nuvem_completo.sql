@@ -43,6 +43,7 @@ CREATE TABLE rotinaInsumo (
     idRotina INT,
     idInsumo INT,
     quantidadeInsumo INT,
+    unidadeMedida VARCHAR(45),
     CONSTRAINT fk_rotinaInsumo_rotina FOREIGN KEY (idRotina) REFERENCES rotina(idRotina),
     CONSTRAINT fk_rotinaInsumo_insumo FOREIGN KEY (idInsumo) REFERENCES insumo(idInsumo)
 );
@@ -354,204 +355,124 @@ INSERT INTO fornecedor (razaoSocial, telefone, linkWhatsapp) VALUES
     ('Distribuidora de Bebidas S.A.',   '(11) 5897-2493', 'https://wa.me/551158972493');
 
 INSERT INTO insumo (fkCategoria, nome, qtdMinima, rotatividade) VALUES
-    -- 1 Proteinas
-    (1, 'Peito de Frango',        6, 1),  -- id 1
-    (1, 'Carne Bovina Moida',     5, 1),  -- id 2
-    (1, 'Carne Suina',            4, 1),  -- id 3
-
-    -- 2 Pescados
-    (2, 'Filé de TilApia',        4, 1),  -- id 4
-    (2, 'Sardinha',               6, 0),  -- id 5
-
-    -- 3 Hortifruti
-    (3, 'Cebola',                 8, 1),  -- id 6
-    (3, 'Alho',                   3, 1),  -- id 7
-    (3, 'Tomate',                 8, 1),  -- id 8
-
-    -- 4 Laticinios
-    (4, 'Leite Integral',        12, 1),  -- id 9
-    (4, 'Queijo Mussarela',       4, 1),  -- id 10
-    (4, 'Manteiga',               3, 1),  -- id 11
-
-    -- 5 Frios e Embutidos
-    (5, 'Bacon',                  3, 1),  -- id 12
-    (5, 'Linguica Toscana',       4, 1),  -- id 13
-    (5, 'Presunto',               3, 1),  -- id 14
-
-    -- 6 Graos e Secos
-    (6, 'Arroz Branco',          10, 0),  -- id 15
-    (6, 'Feijao Carioca',         8, 0),  -- id 16
-    (6, 'Farinha de Trigo',       6, 0),  -- id 17
-    (6, 'Macarrao Espaguete',     8, 0),  -- id 18
-
-    -- 7 Temperos e Condimentos
-    (7, 'Sal Refinado',           3, 0),  -- id 19
-    (7, 'Pimenta do Reino',       2, 0),  -- id 20
-    (7, 'Molho de Tomate',       10, 1),  -- id 21
-    (7, 'Vinagre',                2, 0),  -- id 22
-
-    -- 8 Oleos e Gorduras
-    (8, 'Oleo de Soja',           4, 0),  -- id 23
-    (8, 'Azeite',                 2, 0),  -- id 24
-
-    -- 9 Bebidas
-    (9, 'Refrigerante',          18, 0),  -- id 25
-    (9, 'Agua Mineral',          36, 0),  -- id 26
-    (9, 'Suco de Laranja',       12, 1);  -- id 27 -- ID 40
+    (1, 'Peito de Frango',        6, 1),  
+    (1, 'Carne Bovina Moida',     5, 1),  
+    (1, 'Carne Suina',            4, 1),  
+    (2, 'File de Tilapia',        4, 1),  
+    (2, 'Sardinha',               6, 0),  
+    (3, 'Cebola',                 8, 1),  
+    (3, 'Alho',                   3, 1),  
+    (3, 'Tomate',                 8, 1),  
+    (4, 'Leite Integral',        12, 1),  
+    (4, 'Queijo Mussarela',       4, 1),  
+    (4, 'Manteiga',               3, 1),  
+    (5, 'Bacon',                  3, 1),  
+    (5, 'Linguica Toscana',       4, 1),  
+    (5, 'Presunto',               3, 1),  
+    (6, 'Arroz Branco',          10, 0),  
+    (6, 'Feijao Carioca',         8, 0),  
+    (6, 'Farinha de Trigo',       6, 0),  
+    (6, 'Macarrao Espaguete',     8, 0),  
+    (7, 'Sal Refinado',           3, 0),  
+    (7, 'Pimenta do Reino',       2, 0),  
+    (7, 'Molho de Tomate',       10, 1),  
+    (7, 'Vinagre',                2, 0),  
+    (8, 'Oleo de Soja',           4, 0),  
+    (8, 'Azeite',                 2, 0),  
+    (9, 'Refrigerante',          18, 0),  
+    (9, 'Agua Mineral',          36, 0),  
+    (9, 'Suco de Laranja',       12, 1);
 
 INSERT INTO marca (fkInsumo, fkFornecedor, nomeMarca) VALUES
-    -- id 1..?
     (1,  2, 'Sadia'),
     (1,  2, 'Seara'),
-
     (2,  2, 'Friboi'),
     (2,  2, 'Swift'),
-
     (3,  2, 'Aurora'),
     (3,  2, 'Perdigao'),
-
     (4,  2, 'Copacol'),
     (4,  2, 'Qualita'),
-
     (5,  2, 'Coqueiro'),
     (5,  2, 'Gomes da Costa'),
-
     (6,  3, 'Hortifruti Central'),
     (6,  3, 'Sitio do Joao'),
-
     (7,  3, 'Hortifruti Central'),
     (7,  3, 'Sitio do Joao'),
-
     (8,  3, 'Hortifruti Central'),
     (8,  3, 'Sitio do Joao'),
-
     (9,  1, 'Italac'),
     (9,  1, 'Piracanjuba'),
-
     (10, 1, 'Polenghi'),
     (10, 1, 'Tirolez'),
-
     (11, 1, 'Aviacao'),
     (11, 1, 'Vigor'),
-
     (12, 2, 'Seara'),
     (12, 2, 'Perdigao'),
-
     (13, 2, 'Aurora'),
     (13, 2, 'Seara'),
-
     (14, 1, 'Sadia'),
     (14, 1, 'Perdigao'),
-
     (15, 3, 'Camil'),
     (15, 3, 'Tio Joao'),
-
     (16, 3, 'Camil'),
     (16, 3, 'Kicaldo'),
-
     (17, 3, 'Dona Benta'),
     (17, 3, 'Sol'),
-
     (18, 3, 'Renata'),
     (18, 3, 'Adria'),
-
     (19, 4, 'Cisne'),
     (19, 4, 'Qualita'),
-
     (20, 4, 'Kitano'),
     (20, 4, 'Bombay'),
-
     (21, 4, 'Pomarola'),
     (21, 4, 'Elefante'),
-
     (22, 4, 'Castelo'),
     (22, 4, 'Qualita'),
-
     (23, 4, 'Liza'),
     (23, 4, 'Soya'),
-
     (24, 4, 'Gallo'),
     (24, 4, 'Andorinha'),
-
     (25, 5, 'Coca-Cola'),
     (25, 5, 'Antarctica'),
-
     (26, 5, 'Crystal'),
     (26, 5, 'Minalba'),
-
     (27, 5, 'Del Valle'),
-    (27, 5, 'Maguary'); -- ID 40
+    (27, 5, 'Maguary'); 
 
--- 1 lote para cada marca "A" (primeira marca de cada insumo)
 INSERT INTO lote (fkMarca, fkUsuario, dataValidade, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada) VALUES
-    -- Proteinas (unidadeMedida/kg)
     (1,  1, DATE_ADD(CURDATE(), INTERVAL  5 DAY),  15.90, 'kg', 1,  12, 10, NOW()), -- Peito de Frango (Sadia)
     (3,  2, DATE_ADD(CURDATE(), INTERVAL  6 DAY),  32.90, 'kg', 1,  10,  7, NOW()), -- Carne Moida (Friboi)
     (5,  1, DATE_ADD(CURDATE(), INTERVAL  7 DAY),  28.90, 'kg', 1,   8,  6, NOW()), -- Carne Suina (Aurora)
-
-    -- Pescados
     (7,  3, DATE_ADD(CURDATE(), INTERVAL  4 DAY),  34.90, 'kg', 1,   6,  5, NOW()), -- TilApia (Copacol)
     (9,  3, DATE_ADD(CURDATE(), INTERVAL 10 DAY),  10.90, 'un', 1,  24, 18, NOW()), -- Sardinha (Coqueiro)
-
-    -- Hortifruti
     (11, 2, DATE_ADD(CURDATE(), INTERVAL 12 DAY),   6.50, 'kg', 1,  10,  8, NOW()), -- Cebola
     (13, 2, DATE_ADD(CURDATE(), INTERVAL 20 DAY),  22.00, 'kg', 1,   3,  2, NOW()), -- Alho
     (15, 2, DATE_ADD(CURDATE(), INTERVAL  7 DAY),   8.90, 'kg', 1,   8,  6, NOW()), -- Tomate
-
-    -- Laticinios
     (17, 1, DATE_ADD(CURDATE(), INTERVAL  8 DAY),   5.49, 'L',  1,  18, 14, NOW()), -- Leite (Italac)
     (19, 1, DATE_ADD(CURDATE(), INTERVAL 12 DAY),  39.90, 'kg', 1,   6,  4, NOW()), -- Mussarela (Polenghi)
     (21, 1, DATE_ADD(CURDATE(), INTERVAL 25 DAY), 17.90, 'g', 200, 12, 9, NOW()), -- Manteiga (Aviacao) - tablete 200g
-
-    -- Frios/Embutidos
     (23, 1, DATE_ADD(CURDATE(), INTERVAL 15 DAY),  29.90, 'kg', 1,   5,  4, NOW()), -- Bacon
     (25, 2, DATE_ADD(CURDATE(), INTERVAL 12 DAY),  19.90, 'kg', 1,   6,  5, NOW()), -- Linguiça
     (27, 2, DATE_ADD(CURDATE(), INTERVAL 10 DAY),  18.50, 'kg', 1,   4,  3, NOW()), -- Presunto
-
-    -- Graos/Secos
     (29, 3, DATE_ADD(CURDATE(), INTERVAL 10 MONTH), 27.90, 'kg', 5,   4,  4, NOW()), -- Arroz (pacote 5kg) qtd=4 pacotes
     (31, 3, DATE_ADD(CURDATE(), INTERVAL  9 MONTH),  8.90, 'kg', 1,   8,  7, NOW()), -- Feijao
     (33, 3, DATE_ADD(CURDATE(), INTERVAL  8 MONTH),  6.90, 'kg', 1,   6,  5, NOW()), -- Farinha trigo
     (35, 3, DATE_ADD(CURDATE(), INTERVAL  9 MONTH),  4.90, 'un', 500, 10,  9, NOW()), -- Macarrao (pacote 500g)
-
-    -- Temperos/Condimentos
     (37, 2, DATE_ADD(CURDATE(), INTERVAL 18 MONTH),  3.20, 'kg', 1,   2,  2, NOW()), -- Sal
     (39, 2, DATE_ADD(CURDATE(), INTERVAL 24 MONTH),  6.50, 'g',  50,  6,  5, NOW()), -- Pimenta (pote 50g)
-    (41, 2, DATE_ADD(CURDATE(), INTERVAL  6 MONTH),  2.90, 'g',  340, 18, 14, NOW()), -- Molho de tomate (sachê/lata 340g)
-    (43, 2, DATE_ADD(CURDATE(), INTERVAL 18 MONTH),  4.90, 'ml', 750,  4,  3, NOW()), -- Vinagre (750ml)
-
-    -- Oleos/Gorduras
-    (45, 1, DATE_ADD(CURDATE(), INTERVAL 14 MONTH),  7.90, 'ml', 900,  6,  5, NOW()), -- Oleo (900ml)
-    (47, 1, DATE_ADD(CURDATE(), INTERVAL 18 MONTH), 29.90, 'ml', 500,  3,  2, NOW()), -- Azeite (500ml)
-
-    -- Bebidas
+    (43, 2, DATE_AD(CURDATE(), INTERVAL 18 MONTH),  4.90, 'ml', 750,  4,  3, NOW()), -- Vinagre (750ml)
+    (45, 1, DATE_ADD(CURDATE(), INTERVAL 14 MONTH),  7.90, 'ml', 900,  6,  5, NOW()), -- Oleo (900ml
     (49, 3, DATE_ADD(CURDATE(), INTERVAL  4 MONTH),  8.90, 'L',    2, 24, 20, NOW()), -- Refrigerante (2L)
-    (51, 3, DATE_ADD(CURDATE(), INTERVAL 12 MONTH),  1.20, 'ml', 500, 48, 40, NOW()), -- Agua (500ml)
     (53, 3, DATE_ADD(CURDATE(), INTERVAL  3 MONTH),  7.90, 'L',    1, 18, 15, NOW()); -- Suco (1L)
 
 INSERT INTO lote (fkMarca, fkUsuario, dataValidade, precoUnit, unidadeMedida, quantidadeMedida, quantidadeOriginal, quantidadeAtual, dataEntrada) VALUES
-    -- Peito de frango (Seara) - outro lote
     (2,  2, DATE_ADD(CURDATE(), INTERVAL  2 DAY),  15.50, 'kg', 1,  8, 6, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-
-    -- Carne moida (Swift)
     (4,  3, DATE_ADD(CURDATE(), INTERVAL  3 DAY),  33.90, 'kg', 1,  6, 4, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-
-    -- TilApia (QualitA)
     (8,  1, DATE_ADD(CURDATE(), INTERVAL  2 DAY),  33.50, 'kg', 1,  4, 3, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-
-    -- Leite (Piracanjuba)
     (18, 1, DATE_ADD(CURDATE(), INTERVAL  5 DAY),   5.29, 'L',  1, 12, 9, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-
-    -- Mussarela (Tirolez)
     (20, 2, DATE_ADD(CURDATE(), INTERVAL  9 DAY),  41.90, 'kg', 1,  4, 3, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-
-    -- Molho de tomate (Elefante) - outro lote
     (42, 3, DATE_ADD(CURDATE(), INTERVAL  5 MONTH), 3.10, 'g', 340, 12, 9, DATE_SUB(NOW(), INTERVAL 10 DAY)),
-
-    -- Refrigerante (Antarctica)
     (50, 3, DATE_ADD(CURDATE(), INTERVAL  3 MONTH), 7.90, 'L',   2, 12, 8, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-
-    -- Agua (Minalba)
     (52, 2, DATE_ADD(CURDATE(), INTERVAL 11 MONTH), 1.10, 'ml', 500, 24, 18, DATE_SUB(NOW(), INTERVAL 15 DAY));
 
 -- BLOCO DE LOTES 3: Terceiro lote para produtos de altissima saida em restaurantes
