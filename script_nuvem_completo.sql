@@ -461,7 +461,7 @@ INSERT INTO lote (fkMarca, fkUsuario, dataValidade, precoUnit, unidadeMedida, qu
     (35, 3, DATE_ADD(CURDATE(), INTERVAL  9 MONTH),  4.90, 'un', 500, 10,  9, NOW(), 1), -- Macarrao (pacote 500g)
     (37, 2, DATE_ADD(CURDATE(), INTERVAL 18 MONTH),  3.20, 'kg', 1,   2,  2, NOW(), 1), -- Sal
     (39, 2, DATE_ADD(CURDATE(), INTERVAL 24 MONTH),  6.50, 'g',  50,  6,  5, NOW(), 1), -- Pimenta (pote 50g)
-    (43, 2, DATE_AD(CURDATE(), INTERVAL 18 MONTH),  4.90, 'ml', 750,  4,  3, NOW(), 1), -- Vinagre (750ml)
+    (43, 2, DATE_ADD(CURDATE(), INTERVAL 18 MONTH),  4.90, 'ml', 750,  4,  3, NOW(), 1), -- Vinagre (750ml)
     (45, 1, DATE_ADD(CURDATE(), INTERVAL 14 MONTH),  7.90, 'ml', 900,  6,  5, NOW(), 1), -- Oleo (900ml
     (49, 3, DATE_ADD(CURDATE(), INTERVAL  4 MONTH),  8.90, 'L',    2, 24, 20, NOW(), 1), -- Refrigerante (2L)
     (53, 3, DATE_ADD(CURDATE(), INTERVAL  3 MONTH),  7.90, 'L',    1, 18, 15, NOW(), 1); -- Suco (1L)
