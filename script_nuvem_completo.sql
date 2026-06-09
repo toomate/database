@@ -152,7 +152,8 @@ SELECT
 FROM lote l
 JOIN marca m ON l.fkMarca = m.idMarca
 JOIN insumo i ON m.fkInsumo = i.idInsumo
-WHERE l.dataValidade <= DATE_ADD(CURDATE(), INTERVAL 7 DAY);
+WHERE l.dataValidade <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+AND i.ativo = 1;
 
 
 -- 2. KPI: Itens com estoque abaixo ou igual ao minimo
@@ -164,18 +165,19 @@ SELECT
 FROM insumo i
 LEFT JOIN marca m ON i.idInsumo = m.fkInsumo
 LEFT JOIN lote l ON m.idMarca = l.fkMarca
+WHERE i.ativo = 1
 GROUP BY i.idInsumo, i.nome, i.qtdMinima
 HAVING EstoqueTotal <= i.qtdMinima OR EstoqueTotal IS NULL;
 
 
--- 3. KPI: Contas (Boletos) jA vencidas
+-- 3. KPI: Contas (Boletos) ja vencidas
 CREATE VIEW vw_kpi_contas_atrasadas AS
 SELECT count(*) as QtdAtrasadas
 FROM boleto
 WHERE pago = 0 AND dataVencimento < CURDATE();
 
 
--- 4. GrAfico: Estoque Atual vs Minimo (Para visualizaçao)
+-- 4. Grafico: Estoque Atual vs Minimo (Para visualizaçao)
 CREATE VIEW vw_grafico_estoque_vs_minimo AS
 SELECT 
     i.nome AS Insumo,
@@ -188,10 +190,11 @@ SELECT
 FROM insumo i
 LEFT JOIN marca m ON i.idInsumo = m.fkInsumo
 LEFT JOIN lote l ON m.idMarca = l.fkMarca
+WHERE i.ativo = 1
 GROUP BY i.idInsumo, i.nome, i.qtdMinima;
 
 
--- 5. KPI: Boletos vencendo nos prOximos 7 dias
+-- 5. KPI: Boletos vencendo nos proximos 7 dias
 CREATE VIEW vw_kpi_boletos_vencimento_proximo AS
 SELECT * FROM boleto
 WHERE pago = 0 
@@ -310,7 +313,8 @@ CREATE VIEW vw_total_perda_validade AS
 SELECT 
     COALESCE(SUM(l.precoUnit * l.quantidadeAtual), 0) AS ValorTotalPerda
 FROM lote l
-WHERE l.dataValidade < CURDATE();
+WHERE l.dataValidade < CURDATE()
+AND l.quantidadeAtual > 0; -- Considera perda apenas se ainda tiver itens em estoque
 
 
 
